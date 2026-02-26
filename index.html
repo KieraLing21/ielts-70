@@ -1,0 +1,2762 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sơ đồ Cây Lộ trình IELTS 7.0 (12 Tháng)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Hành Trình Chinh Phục 7.0</h1>
+            <p style="color: var(--text-muted);">Học song song MIS & BABOK | Chuyên sâu Listening & Speaking</p>
+        </header>
+
+        <section class="stats-grid">
+            <div class="stat-item">
+                <div class="lbl">Tổng tiến độ</div>
+                <div class="val" id="overall-val">0%</div>
+            </div>
+            <div class="stat-item">
+                <div class="lbl">Giai đoạn hiện tại</div>
+                <div class="val" id="current-phase-name" style="font-size: 1.2rem;">Phase 1</div>
+            </div>
+            <div class="stat-item">
+                <div class="lbl">Tổng số phiên học</div>
+                <div class="val" id="total-sessions-global">0</div>
+            </div>
+        </section>
+
+        <main class="tree-container" id="tree-root"></main>
+    </div>
+
+    <script>
+        window.lastActiveEditorId = 'vocab-editor';
+        document.addEventListener('focusin', (e) => {
+            if (e.target.classList && e.target.classList.contains('sentence-editor')) {
+                window.lastActiveEditorId = e.target.id;
+            }
+        });
+
+        const stages = [
+            {
+                id: 1,
+                name: "Block 1: Foundation (0 - 5.0)",
+                startWeek: 1,
+                endWeek: 12,
+                tasks: ["Phát âm IPA/Shadowing", "Listening (VOA/BBC)", "Speaking (Khung Câu)", "Từ vựng Core/MIS"]
+            },
+            {
+                id: 2,
+                name: "Block 2: Academy (5.0 - 6.5)",
+                startWeek: 13,
+                endWeek: 24,
+                tasks: ["IELTS Listening S1-2", "Speaking Part 1 & 2 Intro", "Reading & Writing Cơ Bản", "Academic & BA Vocab"]
+            },
+            {
+                id: 3,
+                name: "Block 3: Precision (6.5 - 7.0+)",
+                startWeek: 25,
+                endWeek: 36,
+                tasks: ["IELTS Listening S3-4", "Speaking Part 2 & 3 Chuyên Sâu", "Writing Task 1 & 2", "Mock Test & Mock Interview (BA)"]
+            }
+        ];
+
+        // Persistence State
+        let userData = JSON.parse(localStorage.getItem('ielts_tree_data')) || {};
+
+        function save() {
+            localStorage.setItem('ielts_tree_data', JSON.stringify(userData));
+            updateOverallProgress();
+        }
+
+        const phase1Routine = `
+        <div style="margin-top:16px; padding:16px; background:rgba(197,160,0,0.03); border-radius:12px; border:1px solid rgba(139,115,85,0.1)">
+            <div style="font-size:0.9rem; font-weight:800; color:var(--primary); margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; display:flex; align-items:center; gap:8px">
+                <span>📋 Routine Hàng Ngày (Không được bỏ)</span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:15px">
+                <div style="background:white; padding:10px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02)">
+                    <div style="font-weight:700; color:var(--primary); margin-bottom:4px">🗣️ Phát âm (30')</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted)">IPA, Nối/Nuốt âm, Shadowing câu ngắn.</div>
+                </div>
+                <div style="background:white; padding:10px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02)">
+                    <div style="font-weight:700; color:var(--primary); margin-bottom:4px">🎧 Listening (40')</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted)">Nghe hiểu ý trước -> Check script sau.</div>
+                </div>
+                <div style="background:white; padding:10px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02)">
+                    <div style="font-weight:700; color:var(--primary); margin-bottom:4px">🎙️ Speaking (30')</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted)">Nói theo khung 4-Tier. 1 chủ đề/ngày.</div>
+                </div>
+                <div style="background:white; padding:10px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02)">
+                    <div style="font-weight:700; color:var(--primary); margin-bottom:4px">📚 Vocab (30')</div>
+                    <div style="font-size:0.75rem; color:var(--text-muted)">15' Core + 15' MIS. Câu đơn + BA context.</div>
+                </div>
+            </div>
+        </div>`;
+
+        const weeklyGoals = {
+            "p1-w1": "Reset nền tảng: Thuộc 20-25 âm IPA, Nghe hiểu ~40% nội dung chậm, Nói được 1 phút không đứng hình." + phase1Routine,
+            "p1-w2": "Luyện nhạy bén: Phân biệt được các âm gần giống, Nghe được cụm từ, Nói được 1-1.5 phút." + phase1Routine,
+            "p1-w3": "Phản xạ Shadowing: Bắt đầu Shadowing, Nghe hiểu ý chính IELTS Section 1, Nói được 2 phút chủ đề quen." + phase1Routine,
+            "p1-w4": "Củng cố & Mở rộng: Phát âm rõ ràng, Có 600-800 từ vực active, Không còn sợ nghe tiếng Anh." + phase1Routine,
+            "p2": "Luyện tập Pre-IELTS: Làm quen format Cam 1-9, Speaking Part 1 trôi chảy, Bắt đầu tư duy Academic.",
+            "p3": "Tăng tốc 6.5+: Listening Section 3-4, Speaking Part 2-3 kết hợp chuyên ngành MIS/BABOK.",
+            "p4": "Về đích 7.0: Giải đề Cam 10-18, Phân tích lỗi sai cực kỹ (Deep Analysis), Mock test ổn định 7.0."
+        };
+
+        const weekDetails = {
+            "p1-w1": {
+                7: true,
+                days: {
+                    1: ["Phát âm: /iː/ vs /ɪ/ (Short/Long i)", "Listening: VOA - Intro D.C.", "Speaking: Greeting & Major (4-Tier)", "Vocab: Intro to MIS Roles", "Grammar: Verb To Be (am/is/are)"],
+                    2: ["Phát âm: /ʌ/ vs /ɑː/ (Cup/Car)", "Listening: BBC - Job market", "Speaking: Morning Routine (4-Tier)", "Vocab: Business Analysis Basics", "Grammar: Verb Have & Do"],
+                    3: ["Phát âm: /e/ vs /æ/ (Bed/Bad)", "Listening: VOA - Education news", "Speaking: Study Habits (4-Tier)", "Vocab: System Analyst Duties", "Grammar: Be + Adjective"],
+                    4: ["Phát âm: /ɒ/ vs /ɔː/ (Hot/Sport)", "Listening: BBC - Free time", "Speaking: Hobbies & Stakeholders", "Vocab: Stakeholder Groups", "Grammar: Have + Noun & Do + Activity"],
+                    5: ["Phát âm: /θ/ vs /ð/ (Thin/This)", "Listening: VOA - Digital World", "Speaking: Learning Motivation (4-Tier)", "Vocab: Requirement Gathering Intro", "Grammar: Want to / Need to / Have to"],
+                    6: ["Phát âm: /ʊ/ vs /uː/ (Book/Boot)", "Listening: BBC - Travel Tips", "Speaking: Past Trips & Analytics", "Vocab: Data & Infrastructure Basics", "Grammar: Can / Can't"],
+                    7: ["Weekly Review: IPA Vowels Master", "Listening: Deep Dictation Challenge", "Speaking: Mock Speaking Part 1", "Vocab: Weekly 150-Word Audit", "Grammar: Review Be / Have / Do / Can"]
+                }
+            },
+            "p1-w2": {
+                days: {
+                    1: ["Phát âm: /eɪ/ & /aɪ/ (Diphthongs)", "Listening: VOA - My Family", "Speaking: Family & Hierarchy (4-Tier)", "Vocab: Family & Org Structure", "Grammar: Simple Present - S+V(s/es)"],
+                    2: ["Phát âm: /ɔɪ/ & /əʊ/ (Boy/Go)", "Listening: BBC - Smart Homes", "Speaking: House & Tech Hardware", "Vocab: Household & HW Inventory", "Grammar: There is / There are"],
+                    3: ["Phát âm: /aʊ/ & /ɪə/ (How/Ear)", "Listening: VOA - Daily Life", "Speaking: Housework & Responsibilities", "Vocab: Roles & Accountabilities", "Grammar: Frequency Adverbs (always/usually)"],
+                    4: ["Phát âm: /eə/ & /ʊə/ (Hair/Sure)", "Listening: BBC - Generations", "Speaking: Childhood & Line Managers", "Vocab: Management Levels", "Grammar: Wh- Questions (Where/What/Who)"],
+                    5: ["Phát âm: Review 8 Diphthongs", "Listening: VOA - Modern Society", "Speaking: Family Values & MIS Teams", "Vocab: MIS Team Collaboration", "Grammar: Negative (don't / doesn't)"],
+                    6: ["Ôn tập: Diphthongs & Family/MIS", "Listening: Weekly Review Challenge", "Speaking: Mock Speaking Part 1", "Vocab: Weekly 150-Word Audit", "Grammar: Review Simple Present (+)(-)(?)"]
+                }
+            },
+            "p1-w3": {
+                days: {
+                    1: ["Phát âm: Nối âm nâng cao (linking sounds)", "Listening: IELTS Section 1 (Easy) - Nghe ý chính", "Speaking: Describe a person - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Analysis)"],
+                    2: ["Phát âm: Giảm âm (reduction)", "Listening: VOA Level 2 (Science/Tech) - Shadowing", "Speaking: Describe a place - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Design)"],
+                    3: ["Phát âm: Nuốt âm (elision)", "Listening: BBC 6 Min - Ghi chú chi tiết", "Speaking: Describe an object - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Development)"],
+                    4: ["Phát âm: Luyện tập Shadowing (15')", "Listening: IELTS Section 1 (Medium) - Nghe chi tiết", "Speaking: Describe an event - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Testing)"],
+                    5: ["Phát âm: Tốc độ nói tự nhiên (natural pace)", "Listening: VOA Level 2 - Deep Listening", "Speaking: Talk about your hometown - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Deployment)"],
+                    6: ["Ôn tập: Phát âm & Ngữ điệu tuần 3", "Listening: Review IELTS Section 1", "Speaking: Mock Speaking Part 1 (3 topic mới)", "Vocab: Ôn tập từ vựng active tuần 3"]
+                }
+            },
+            "p1-w4": {
+                days: {
+                    1: ["Phát âm: Luyện tập 44 âm IPA (15')", "Listening: IELTS Section 2 (Easy) - Nghe ý chính", "Speaking: Talk about your favorite book/movie - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Maintenance)"],
+                    2: ["Phát âm: Luyện tập nối âm, giảm âm, nuốt âm", "Listening: VOA Level 3 (Economy/Politics) - Shadowing", "Speaking: Talk about a memorable trip - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Support)"],
+                    3: ["Phát âm: Luyện tập ngữ điệu câu hỏi/câu trần thuật", "Listening: BBC 6 Min - Tóm tắt nội dung", "Speaking: Talk about your future plans - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Upgrade)"],
+                    4: ["Phát âm: Luyện tập tốc độ nói tự nhiên (20')", "Listening: IELTS Section 2 (Medium) - Nghe chi tiết", "Speaking: Talk about a skill you want to learn - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Innovation)"],
+                    5: ["Phát âm: Tổng ôn phát âm toàn diện", "Listening: VOA Level 3 - Deep Listening", "Speaking: Talk about a challenge you faced - 2'", "Vocab: 10 từ IELTS + 5 từ MIS (Strategy)"],
+                    6: ["Ôn tập: Kiểm tra phát âm & độ trôi chảy", "Listening: Review IELTS Section 2", "Speaking: Mock Speaking Part 1 (3 topic khó)", "Vocab: Tổng ôn 600-800 từ vựng active"]
+                }
+            }
+        };
+
+        // Helper Functions
+        function getTaskIcon(taskName, idx) {
+            const lower = taskName.toLowerCase();
+            if (lower.includes('phát âm') || idx === 0) return '🗣️';
+            if (lower.includes('listening') || idx === 1) return '🎧';
+            if (lower.includes('speaking') || idx === 2) return '🎙️';
+            if (lower.includes('vocab') || idx === 3) return '📚';
+            if (lower.includes('grammar') || idx === 4) return '📝';
+            return '📝';
+        }
+
+        function isDayDone(dayId) {
+            if (!userData[dayId]) return false;
+            const details = userData[dayId].details || [];
+            if (details.length === 0) return false;
+            return details.every(d => d.done);
+        }
+
+        function getTaskStatus(dayId, taskIdx) {
+            if (!userData[dayId] || !userData[dayId].details || !userData[dayId].details[taskIdx]) {
+                return '';
+            }
+            return userData[dayId].details[taskIdx].done ? 'done' : '';
+        }
+
+
+
+        function renderDiscoveries(dayId) {
+            const discoveries = userData[dayId]?.discoveries || [];
+            if (discoveries.length === 0) return '';
+
+            return `
+                <div class="discovery-zone">
+                    <div style="font-size:0.7rem; text-transform:uppercase; color:var(--primary); font-weight:800; margin-bottom:10px; display:flex; align-items:center; gap:5px; opacity:0.8">
+                        <span>💎 Personal Discovery</span>
+                    </div>
+                    ${discoveries.map((item, idx) => `
+                        <div class="discovery-item" onclick="if('${item.url}') window.open('${item.url}', '_blank')">
+                            <div class="discovery-content">
+                                <span class="discovery-type">${item.type}</span>
+                                <span class="discovery-title">${item.title}</span>
+                                <div class="discovery-note">${item.note}</div>
+                            </div>
+                            <button class="btn-delete-gem" onclick="event.stopPropagation(); deleteDiscovery('${dayId}', ${idx})">×</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        window.openDiscoveryForm = (dayId) => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width: 450px;">
+                    <span class="close-x" onclick="closeModal()">×</span>
+                    <div class="modal-header">
+                        <h2 style="font-size:1.5rem">✨ Add New Gem</h2>
+                        <p>Thêm bài học hay bạn vừa khám phá được</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Loại kiến thức</label>
+                        <select id="discovery-type" style="width:100%; background:var(--bg-dark); border:1px solid var(--glass-border); padding:10px; border-radius:8px; color:var(--text-main)">
+                            <option value="🎧 Listening">Bài nghe / Podcast</option>
+                            <option value="📖 Reading">Bài báo / Blog</option>
+                            <option value="📚 Vocab">Cụm từ / Idiom hay</option>
+                            <option value="💡 Advice">Lời khuyên / Tips</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Tiêu đề / Tên bài</label>
+                        <input id="discovery-title" type="text" placeholder="Ví dụ: BBC Learning English - Global Warming" style="width:100%; background:var(--bg-dark); border:1px solid var(--glass-border); padding:10px; border-radius:8px; color:var(--text-main)">
+                    </div>
+                    <div class="form-group">
+                        <label>Link (nếu có)</label>
+                        <input id="discovery-url" type="text" placeholder="https://..." style="width:100%; background:var(--bg-dark); border:1px solid var(--glass-border); padding:10px; border-radius:8px; color:var(--text-main)">
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú nhanh / Key Takeaway</label>
+                        <textarea id="discovery-note" placeholder="Bạn học được gì từ bài này?" style="min-height:80px;"></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-close" onclick="closeModal()">Hủy</button>
+                        <button class="btn btn-primary" onclick="saveDiscovery('${dayId}')">Lưu vào Lab</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        window.saveDiscovery = (dayId) => {
+            const type = document.getElementById('discovery-type').value;
+            const title = document.getElementById('discovery-title').value.trim();
+            const url = document.getElementById('discovery-url').value.trim();
+            const note = document.getElementById('discovery-note').value.trim();
+
+            if (!title) {
+                alert("Vui lòng nhập tiêu đề!");
+                return;
+            }
+
+            if (!userData[dayId]) userData[dayId] = {};
+            if (!userData[dayId].discoveries) userData[dayId].discoveries = [];
+
+            userData[dayId].discoveries.push({ type, title, url, note });
+            save();
+            renderTree();
+            closeModal();
+        };
+
+        window.deleteDiscovery = (dayId, idx) => {
+            if (!confirm("Xóa kiến thức này khỏi Lab?")) return;
+            userData[dayId].discoveries.splice(idx, 1);
+            save();
+            renderTree();
+        };
+
+        function renderTree() {
+            const root = document.getElementById('tree-root');
+            root.innerHTML = '';
+
+            stages.forEach(stage => {
+                const phaseNode = document.createElement('div');
+                phaseNode.className = 'phase-node';
+
+                const phaseHeader = document.createElement('div');
+                phaseHeader.className = 'phase-header';
+                phaseHeader.innerHTML = `<span>${stage.name}</span> <span class="chevron">▼</span>`;
+                phaseHeader.onclick = () => {
+                    const container = phaseNode.querySelector('.blocks-container');
+                    container.classList.toggle('hidden');
+                    phaseHeader.classList.toggle('open');
+                };
+                phaseNode.appendChild(phaseHeader);
+
+                const blocksContainer = document.createElement('div');
+                blocksContainer.className = 'blocks-container hidden';
+
+                for (let w = stage.startWeek; w <= stage.endWeek; w++) {
+                    const blockNode = document.createElement('div');
+                    blockNode.className = 'block-node';
+
+                    // Use p1 prefix for all weeks to remain compatible with data structure, 
+                    // or mapping to stage.id if preferred. We'll use p1 for consistency with new-day workflow
+                    const blockId = `p1-w${w}`;
+                    let rawGoal = weeklyGoals[blockId] || weeklyGoals[`p${stage.id}`] || "Tiếp tục bám sát lộ trình giai đoạn.";
+
+                    // Split Goal Text and Routine HTML
+                    let goalText = rawGoal;
+                    let goalRoutine = "";
+                    if (rawGoal.includes('<div')) {
+                        const parts = rawGoal.split('<div');
+                        goalText = parts[0];
+                        goalRoutine = '<div' + parts.slice(1).join('<div');
+                    }
+
+                    const blockHeader = document.createElement('div');
+                    blockHeader.className = 'block-header';
+                    blockHeader.style.display = 'grid';
+                    blockHeader.style.gridTemplateColumns = '250px 1fr';
+                    blockHeader.style.gap = '20px';
+                    blockHeader.style.alignItems = 'center';
+
+                    blockHeader.innerHTML = `
+                        <div class="week-info-col">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:5px">
+                                <div class="week-badge">Week ${w}</div>
+                                <span style="font-weight:700; color:var(--text-main)">Chặng ${w}</span>
+                            </div>
+                            <span class="progress-pills">${renderPills(blockId)}</span>
+                        </div>
+                        <div class="week-goal-col" style="border-left:2px solid rgba(139,115,85,0.1); padding-left:20px">
+                             <div style="font-size:0.8rem; text-transform:uppercase; color:var(--primary); font-weight:800; margin-bottom:2px">🎯 Mục tiêu focus</div>
+                             <div style="font-size:0.9rem; color:var(--text-main); line-height:1.4">${goalText}</div>
+                        </div>
+                    `;
+
+                    blockHeader.onclick = (e) => {
+                        const days = blockNode.querySelector('.days-container');
+                        days.classList.toggle('hidden');
+                        // Optional: Animate or toggle icon
+                    };
+                    blockNode.appendChild(blockHeader);
+
+                    const daysContainer = document.createElement('div');
+                    daysContainer.className = 'days-container hidden';
+
+                    // Routine Display (Inside Expanded)
+                    if (goalRoutine) {
+                        const routineDiv = document.createElement('div');
+                        routineDiv.innerHTML = goalRoutine;
+                        // Routine styling overrides to fit inside card
+                        daysContainer.appendChild(routineDiv);
+                    }
+
+                    const currentWeekInfo = weekDetails[blockId];
+                    const daysInWeek = (currentWeekInfo && currentWeekInfo[7]) ? 7 : 6;
+
+                    for (let d = 1; d <= daysInWeek; d++) {
+                        const dayId = `${blockId}-d${d}`;
+                        const dayCard = document.createElement('div');
+                        dayCard.className = 'day-card';
+
+                        let displayTasks = stage.tasks;
+                        if (currentWeekInfo && currentWeekInfo.days && currentWeekInfo.days[d]) {
+                            displayTasks = currentWeekInfo.days[d];
+                        }
+
+                        const isDone = isDayDone(dayId);
+                        const dayCurriculum = lessonCurriculum[dayId];
+                        let summaryHtml = '';
+
+                        if (dayCurriculum && dayCurriculum.summary) {
+                            summaryHtml = `
+                                <div class="day-summary" style="flex:1 1 250px; background:rgba(197,160,0,0.03); border-left:3px solid var(--primary); padding:12px; border-radius:8px; font-size:0.8rem; height:fit-content; border:1px solid rgba(197,160,0,0.1); border-left-width:4px">
+                                    <div style="margin-bottom:4px"><strong>📂 Topic:</strong> ${dayCurriculum.summary.topic || ''}</div>
+                                    ${dayCurriculum.summary.grammar ? `<div style="margin-bottom:4px; color: #5a3e1b; background: rgba(197,160,0,0.1); padding:4px 8px; border-radius:6px"><strong>📝 Grammar:</strong> ${dayCurriculum.summary.grammar}</div>` : ''}
+                                    <div style="margin-bottom:4px"><strong>🎙️ Ph.Âm:</strong> ${dayCurriculum.summary.pronunciation || ''}</div>
+                                    <div style="margin-bottom:4px"><strong>🎧 List:</strong> ${dayCurriculum.summary.listening || ''}</div>
+                                    <div style="margin-bottom:4px"><strong>🗣️ Speak:</strong> ${dayCurriculum.summary.speaking || ''}</div>
+                                    <div><strong>📚 Vocab:</strong> ${dayCurriculum.summary.vocab || ''}</div>
+                                </div>
+                            `;
+                        }
+
+                        dayCard.innerHTML = `
+                             <div class="day-header ${isDone ? 'finished' : ''}">
+                                <div class="day-title">Day ${d}</div>
+                                ${isDone ? '<div class="day-badge">Hoàn thành</div>' : ''}
+                            </div>
+                            ${summaryHtml}
+                            <div class="day-tasks">
+                                ${displayTasks.map((t, idx) => `
+                                    <div class="task-row ${getTaskStatus(dayId, idx)}" onclick="openTaskForm('${dayId}', ${idx}, '${t.replace(/'/g, "\\'")}')">
+                                        <div class="task-icon">${getTaskIcon(t, idx)}</div>
+                                        <div class="task-info">
+                                            <span class="task-text">${t}</span>
+                                        </div>
+                                        <div class="task-status-dot"></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="discovery-section" style="flex: 0 0 200px; border-left: 1px solid rgba(139, 115, 85, 0.1); padding-left: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+                                ${renderDiscoveries(dayId)}
+                                <button class="btn-discovery" onclick="openDiscoveryForm('${dayId}')">
+                                    <span>✨</span> Add Discovery
+                                </button>
+                            </div>
+                        `;
+                        daysContainer.appendChild(dayCard);
+                    }
+                    blockNode.appendChild(daysContainer);
+                    blocksContainer.appendChild(blockNode);
+                }
+
+                phaseNode.appendChild(blocksContainer);
+                root.appendChild(phaseNode);
+            });
+        }
+
+        const lessonCurriculum = {
+            "p1-w1-d1": {
+                summary: {
+                    topic: "Personal Info (IELTS) | Intro to MIS Roles (MIS)",
+                    grammar: "Verb To Be (am/is/are) - Giới thiệu bản thân",
+                    pronunciation: "/i:/ vs /ɪ/ | Connected: Wake up, Check it out",
+                    listening: "VOA Level 1: \"Welcome to Washington D.C.\"",
+                    speaking: "Greetings & Major (Dual-Context)",
+                    vocab: "25 words (10 Core, 10 MIS, 5 Listening)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /i:/ vs /ɪ/ (MIS Fundamentals)",
+                    dailyWords: [
+                        { w: "See", p: "/siː/" }, { w: "Sit", p: "/sɪt/" }, { w: "Feel", p: "/fiːl/" },
+                        { w: "Fit", p: "/fɪt/" }, { w: "Meet", p: "/miːt/" }, { w: "Miss", p: "/mɪs/" },
+                        { w: "Sleep", p: "/sliːp/" }, { w: "Slip", p: "/slɪp/" }, { w: "Eat", p: "/iːt/" }, { w: "Bit", p: "/bɪt/" }
+                    ],
+                    specializedWords: [
+                        { w: "Team", p: "/tiːm/" }, { w: "System", p: "/ˈsɪstəm/" }, { w: "Achieve", p: "/əˈtʃiːv/" },
+                        { w: "Business", p: "/ˈbɪznəs/" }, { w: "Feasible", p: "/ˈfiːzəbl/" }, { w: "Risk", p: "/rɪsk/" },
+                        { w: "Feature", p: "/ˈfiːtʃə/" }, { w: "Deliver", p: "/dɪˈlɪvə/" }, { w: "Agree", p: "/əˈɡriː/" }, { w: "Limit", p: "/ˈlɪmɪt/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "Wake up", linking: "/weɪ kʌp/", type: "Nối âm", note: "Phụ âm /k/ nối với nguyên âm /ʌ/." },
+                        { text: "Check it out", linking: "/tʃekɪtaʊt/", type: "Nối âm", note: "Nối liên hoàn: /k/ sang /ɪ/ và /t/ sang /aʊ/." },
+                        { text: "Good day", linking: "/ɡʊdeɪ/", type: "Nuốt âm", note: "Hai phụ âm /d/ đứng cạnh nhau, nuốt bớt 1 âm." },
+                        { text: "Last night", linking: "/lɑːs naɪt/", type: "Nuốt âm", note: "Âm /t/ ở giữa hai phụ âm thường bị nuốt." },
+                        { text: "City of data", linking: "/ˈsɪti jəv ˈdeɪtə/", type: "Nối âm", note: "Âm /i/ nối với /ə/ thêm âm lướt /j/." }
+                    ],
+                    steps: [
+                        { num: 1, text: "Xem Video: 'Pronunciation of EE [i] and IH [ɪ]'", link: "https://www.youtube.com/watch?v=kYJj0vE916w" },
+                        { num: 2, text: "Luyện khẩu hình: Lưỡi cao, môi dẹp cho /i:/ và thả lỏng cho /ɪ/." }
+                    ]
+                },
+                1: {
+                    type: "listening",
+                    title: "VOA Level 1",
+                    steps: [
+                        { num: 1, text: "Bài học chính: VOA Lesson 2 - \"Hello, I'm Anna!\" (Welcome to Washington DC)", link: "https://learningenglish.voanews.com/a/lets-learn-english-lesson-2-hello/3113733.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=3W0L47Nn2iI" },
+                        { num: 3, text: "Nghe không script bắt keyword." },
+                        { num: 4, text: "Nghe có script check nối âm." },
+                        { num: 5, text: "Ghi âm lại đoạn quan trọng nhất." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Intro & Major (Dual-Context)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Greeting & Name",
+                            questions: ["How should I call you?", "Where are you from?"],
+                            samples: `**Direct:** You can call me [Name], and I'm originally from Hanoi.
+**Reason:** I prefer this name because it's short and easy for everyone to remember.
+**Example:** For instance, my colleagues at the office always use this name during our casual chats.
+**Therefore:** It creates a friendly atmosphere and helps me connect with people easily.`
+                        },
+                        {
+                            title: "🎓 Professional Context: MIS & BABOK",
+                            questions: ["What is your current major?", "Why did you choose it?"],
+                            samples: `**Direct:** I'm currently specializing in Management Information Systems (MIS).
+**Reason:** I have a deep interest in how information technology can be leveraged to solve complex business problems.
+**Example:** For example, I'm fascinated by the "Elicitation" process in BABOK, which helps in gathering accurate requirements.
+**Therefore:** My goal is to bridge the gap between technical teams and business stakeholders effectively.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "MIS Core Concepts (15' Core + 15' MIS + 10' Listening)",
+                    core: [
+                        { w: "See", p: "/siː/", s: "I can see the mountain from here.", a: "We need to see the data visualization to understand the trend." },
+                        { w: "Sit", p: "/sɪt/", s: "Please sit down and relax.", a: "The committee will sit next week to review the proposal." },
+                        { w: "Feel", p: "/fiːl/", s: "I feel happy today.", a: "Stakeholders feel confident about the new system implementation." },
+                        { w: "Fit", p: "/fɪt/", s: "These shoes fit me well.", a: "The solution must fit within the existing infrastructure constraints." },
+                        { w: "Meet", p: "/miːt/", s: "Let's meet at 3 PM.", a: "The project must meet all regulatory compliance requirements." },
+                        { w: "Miss", p: "/mɪs/", s: "I miss my family.", a: "We cannot afford to miss critical deadlines in this sprint." },
+                        { w: "Sleep", p: "/sliːp/", s: "I need to sleep early tonight.", a: "The server will sleep mode during off-peak hours to save energy." },
+                        { w: "Slip", p: "/slɪp/", s: "Don't slip on the wet floor.", a: "A small slip in data entry can cause significant reporting errors." },
+                        { w: "Eat", p: "/iːt/", s: "I eat breakfast at 7 AM.", a: "The new feature will eat up considerable system resources." },
+                        { w: "Bit", p: "/bɪt/", s: "I'm a bit tired today.", a: "Each bit of information contributes to the overall data integrity." }
+                    ],
+                    specialized: [
+                        { w: "Team", p: "/tiːm/", s: "Our team is very strong.", a: "The cross-functional team collaborates on requirements elicitation." },
+                        { w: "System", p: "/ˈsɪstəm/", s: "The system is down.", a: "The information system integrates multiple data sources seamlessly." },
+                        { w: "Achieve", p: "/əˈtʃiːv/", s: "I want to achieve my goals.", a: "We aim to achieve operational excellence through process optimization." },
+                        { w: "Business", p: "/ˈbɪznəs/", s: "Business is good this quarter.", a: "Business analysis identifies gaps between current and desired states." },
+                        { w: "Feasible", p: "/ˈfiːzəbl/", s: "Is this plan feasible?", a: "The technical feasibility study confirms the solution is viable." },
+                        { w: "Risk", p: "/rɪsk/", s: "There is some risk involved.", a: "Risk assessment is crucial for project planning and mitigation strategies." },
+                        { w: "Feature", p: "/ˈfiːtʃə/", s: "This phone has many features.", a: "Each feature must be mapped to specific business requirements." },
+                        { w: "Deliver", p: "/dɪˈlɪvə/", s: "Can you deliver this package?", a: "We deliver value incrementally through agile sprints." },
+                        { w: "Agree", p: "/əˈɡriː/", s: "I agree with you.", a: "All stakeholders must agree on the acceptance criteria before development." },
+                        { w: "Limit", p: "/ˈlɪmɪt/", s: "There is a speed limit here.", a: "System limits must be defined to prevent resource exhaustion." }
+                    ],
+                    fromListening: [
+                        { w: "Capital", p: "/ˈkæpɪtl/", context: "Washington D.C. is the capital of the United States." },
+                        { w: "Museum", p: "/mjuːˈziːəm/", context: "The museum has many historical artifacts." },
+                        { w: "Monument", p: "/ˈmɒnjʊmənt/", context: "The Washington Monument is very tall." },
+                        { w: "Tourist", p: "/ˈtʊərɪst/", context: "Many tourists visit the city every year." },
+                        { w: "Visit", p: "/ˈvɪzɪt/", context: "I want to visit Washington D.C. someday." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Verb To Be (am/is/are)",
+                    theory: "'To Be' là động từ cị nhất trong tiếng Anh. Dùng để giới thiệu bản thân, mô tả người/vật, và xác nhận danh tính.",
+                    formula: "I am | He/She/It is | We/You/They are",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **am** a student of MIS at university.", note: "Dùng 'am' với chủ ngữ 'I'." },
+                        { context: "🎓 MIS", sentence: "The system **is** currently undergoing maintenance.", note: "Dùng 'is' với chủ ngữ số ít (He/She/It)." }
+                    ],
+                    exercise: "Viết 3 câu giới thiệu bản thân và công việc của bạn bằng To Be."
+                }
+            },
+            "p1-w1-d2": {
+                summary: {
+                    topic: "Personal Items (IELTS) | Business Analysis Intro (MIS)",
+                    grammar: "Verb To Have & Do - Thói quen & Công việc hàng ngày",
+                    pronunciation: "/ʌ/ vs /ɑː/ | Connected: Come on, Start again",
+                    listening: "BBC: Job Market Trends",
+                    speaking: "Morning Routine (4-Tier Framework)",
+                    vocab: "25 words (Task, Solution, Market, Budget...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /ʌ/ vs /ɑː/ (Cup/Car)",
+                    dailyWords: [
+                        { w: "Love", p: "/lʌv/" }, { w: "Car", p: "/kɑː/" }, { w: "Cup", p: "/kʌp/" },
+                        { w: "Start", p: "/stɑːt/" }, { w: "Run", p: "/rʌn/" }, { w: "Park", p: "/pɑːk/" },
+                        { w: "Luck", p: "/lʌk/" }, { w: "Hard", p: "/hɑːd/" }, { w: "Sun", p: "/sʌn/" }, { w: "Art", p: "/ɑːt/" }
+                    ],
+                    specializedWords: [
+                        { w: "Structure", p: "/ˈstrʌktʃə/" }, { w: "Target", p: "/ˈtɑːɡɪt/" }, { w: "Budget", p: "/ˈbʌdʒɪt/" },
+                        { w: "Market", p: "/ˈmɑːkɪt/" }, { w: "Function", p: "/ˈfʌŋkʃn/" }, { w: "Partner", p: "/ˈpɑːtnə/" },
+                        { w: "Conduct", p: "/ˈkɒndʌkt/" }, { w: "Chart", p: "/tʃɑːt/" }, { w: "Result", p: "/rɪˈzʌlt/" }, { w: "Department", p: "/dɪˈpɑːtmənt/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "Bus station", linking: "/ˈbʌsteɪʃn/", type: "Nuốt âm", note: "Hai âm /s/ đi liền nhau nuốt bớt 1 âm." },
+                        { text: "Come on", linking: "/kʌm ɒn/", type: "Nối âm", note: "Phụ âm /m/ nối với nguyên âm /ɒ/." },
+                        { text: "Just now", linking: "/dʒʌs naʊ/", type: "Nuốt âm", note: "Âm /t/ bị nuốt giữa hai phụ âm." },
+                        { text: "Love it", linking: "/lʌvɪt/", type: "Nối âm", note: "Phụ âm /v/ nối với nguyên âm /ɪ/." },
+                        { text: "Start again", linking: "/stɑːt əˈɡen/", type: "Nối âm", note: "Phụ âm /t/ nối với nguyên âm /ə/." }
+                    ],
+                    steps: [
+                        { num: 1, text: "Xem Video: 'Cup vs Car - /ʌ/ and /ɑ:/'", link: "https://www.youtube.com/watch?v=0kIovgBivK0" },
+                        { num: 2, text: "Luyện Connected Speech: 'Love it' và 'Start again'." }
+                    ]
+                },
+                1: {
+                    type: "listening",
+                    title: "BBC: Future of Work",
+                    steps: [
+                        { num: 1, text: "What is the future of work? (BBC):", link: "https://www.bbc.co.uk/learningenglish/features/6-minute-english_2024/ep-240201" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=s1HxJVusR2w" },
+                        { num: 3, text: "Note 5 cụm từ liên quan đến Business/Work." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Daily & Work Routine (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Morning Routine",
+                            questions: ["What is your morning routine?", "How do you start your day?"],
+                            samples: `**Opinion:** I usually kick off my day at 6 AM.
+**Reason:** Starting early gives me a head start on my daily tasks.
+**Example:** For instance, I spend the first 30 minutes reading news or studying IPA.
+**Therefore:** This disciplined routine helps me stay focused and energetic for work.`
+                        },
+                        {
+                            title: "🎓 Professional Context: Business Analysis Basics",
+                            questions: ["What does a Business Analyst do?", "Why is it important for a company?"],
+                            samples: `**Opinion:** A BA essentially acts as a bridge between business needs and IT solutions.
+**Reason:** Without this role, technical teams might build features that don't solve the actual problem.
+**Example:** For example, a BA conducts stakeholder interviews to define the exact project scope.
+**Therefore:** It ensures that the final system meets all business requirements and delivers value.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Work & BA Intro (25 words)",
+                    core: [
+                        { w: "Task", p: "/tɑːsk/", s: "Assign a task.", a: "Task analysis is a key BA technique." },
+                        { w: "Work", p: "/wɜːk/", s: "I work hard.", a: "The Work Breakdown Structure (WBS) defines project scope." },
+                        { w: "Job", p: "/dʒɒb/", s: "New job offer.", a: "Job shadowing helps in understanding user workflows." },
+                        { w: "Busy", p: "/ˈbɪzi/", s: "A busy day.", a: "Busy stakeholders need concise reports." },
+                        { w: "Hard", p: "/hɑːd/", s: "A hard exam.", a: "Hard skills like SQL are vital for MIS." },
+                        { w: "Plan", p: "/plæn/", s: "Daily plan.", a: "The project plan includes risk mitigation." },
+                        { w: "Goal", p: "/ɡəʊl/", s: "Personal goal.", a: "Business goals drive system requirements." },
+                        { w: "Time", p: "/taɪm/", s: "Dinner time.", a: "Time-to-market is a critical business metric." },
+                        { w: "Start", p: "/stɑːt/", s: "Start now.", a: "Kick-off meetings start the project lifecycle." },
+                        { w: "Done", p: "/dʌn/", s: "Well done!", a: "Definition of Done (DoD) is crucial in Agile." }
+                    ],
+                    specialized: [
+                        { w: "Business", p: "/ˈbɪznəs/", s: "Local business.", a: "Business requirements describe high-level goals." },
+                        { w: "Solution", p: "/səˈluːʃn/", s: "Find a solution.", a: "The proposed solution must be technically feasible." },
+                        { w: "Analysis", p: "/əˈnæləsɪs/", s: "Data analysis.", a: "Gap analysis identifies what is missing in the system." },
+                        { w: "Market", p: "/ˈmɑːkɪt/", s: "Market price.", a: "Market research informs product development." },
+                        { w: "Budget", p: "/ˈbʌdʒɪt/", s: "Tight budget.", a: "The project budget limits the available resources." },
+                        { w: "Result", p: "/rɪˈzʌlt/", s: "Exam result.", a: "Positive results validate the BA intervention." },
+                        { w: "Target", p: "/ˈtɑːɡɪt/", s: "Target audience.", a: "Target architecture defines the future system state." },
+                        { w: "Process", p: "/ˈprəʊses/", s: "Long process.", a: "Business process modeling improves efficiency." },
+                        { w: "Partner", p: "/ˈpɑːtnə/", s: "Travel partner.", a: "Strategic partners collaborate on integration." },
+                        { w: "Function", p: "/ˈfʌŋkʃn/", s: "Basic function.", a: "Functional specs define system behavior." }
+                    ],
+                    fromListening: [
+                        { w: "Career", p: "/kəˈrɪə/", context: "A successful career in IT." },
+                        { w: "Salary", p: "/ˈsæləri/", context: "A competitive annual salary." },
+                        { w: "Skill", p: "/skɪl/", context: "Soft skills are essential for BAs." },
+                        { w: "Interview", p: "/ˈɪntəvjuː/", context: "The initial stakeholder interview." },
+                        { w: "Experience", p: "/ɪkˈspɪəriəns/", context: "Prior experience in data modeling." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Verb Have & Do",
+                    theory: "'Have' diễn tả sở hữu hoặc trải nghiệm. 'Do' dùng để hỏi và chặn định thì hiện tại đơn (auxiliary), hoặc diễn tả hành động thông thường.",
+                    formula: "I have / I do | He has / He does (+s/es)",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **have** a morning routine that starts at 6 AM.", note: "'Have' = sở hữu, tạo thói quen." },
+                        { context: "🎓 MIS", sentence: "She **does** a weekly status report for the team.", note: "'Does' = thực hiện một hành động định kỳ." }
+                    ],
+                    exercise: "Viết 2 câu về thói quen bạn có vào buổi sáng. Dùng 'have' và 'do'."
+                }
+            },
+            "p1-w1-d3": {
+                summary: {
+                    topic: "Education (IELTS) | System Analyst Duties (MIS)",
+                    grammar: "Be + Adjective & Do + Verb - Mô tả tính chất",
+                    pronunciation: "/e/ vs /æ/ | Connected: Get out, Send it",
+                    listening: "VOA: Education in the AI Era",
+                    speaking: "Study Habits (4-Tier Framework)",
+                    vocab: "25 words (Analyst, Model, Diagram, Scope...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /e/ vs /æ/ (Bed/Bad)",
+                    dailyWords: [
+                        { w: "Bed", p: "/bed/" }, { w: "Bad", p: "/bæd/" }, { w: "Men", p: "/men/" },
+                        { w: "Man", p: "/mæn/" }, { w: "Send", p: "/send/" }, { w: "Sand", p: "/sænd/" },
+                        { w: "Check", p: "/tʃek/" }, { w: "Back", p: "/bæk/" }, { w: "Head", p: "/hed/" }, { w: "Hand", p: "/hænd/" }
+                    ],
+                    specializedWords: [
+                        { w: "Network", p: "/ˈnetwɜːk/" }, { w: "Access", p: "/ˈækses/" }, { w: "Method", p: "/ˈmeθəd/" },
+                        { w: "Asset", p: "/ˈæset/" }, { w: "Metric", p: "/ˈmetrɪk/" }, { w: "Agile", p: "/ˈædʒaɪl/" },
+                        { w: "Test", p: "/test/" }, { w: "Plan", p: "/plæn/" }, { w: "Level", p: "/ˈlevl/" }, { w: "Map", p: "/mæp/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "Get out", linking: "/ɡet aʊt/", type: "Nối âm", note: "Phụ âm /t/ nối với nguyên âm /aʊ/." },
+                        { text: "Bad day", linking: "/bæ deɪ/", type: "Nuốt âm", note: "Âm /d/ thứ nhất bị nuốt." },
+                        { text: "Send it", linking: "/sendɪt/", type: "Nối âm", note: "Nối /d/ với /ɪ/." },
+                        { text: "Check up", linking: "/tʃek ʌp/", type: "Nối âm", note: "Nối /k/ với /ʌ/." },
+                        { text: "Map out", linking: "/mæpaʊt/", type: "Nối âm", note: "Nối /p/ với /aʊ/." }
+                    ],
+                    steps: [
+                        { num: 1, text: "Xem Video: 'Bed vs Bad - /e/ and /æ/'", link: "https://www.youtube.com/watch?v=q66f363J6U4" },
+                        { num: 2, text: "Luyện Connected Speech: 'Send it' và 'Map out'." }
+                    ]
+                },
+                1: {
+                    type: "listening",
+                    title: "VOA: Education Systems",
+                    steps: [
+                        { num: 1, text: "Nghe về hệ thống giáo dục hiện đại (VOA):", link: "https://learningenglish.voanews.com/a/lets-learn-english-lesson-50-back-to-school/3807270.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=27-mOQ43Q3I" },
+                        { num: 3, text: "Highlight các từ vựng về Degrees & Training." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Study & MIS Duties (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Study Habits",
+                            questions: ["How do you prepare for exams?", "Do you prefer group study?"],
+                            samples: `**Opinion:** I usually stick to a structured study schedule.
+**Reason:** It ensures I cover all modules without feeling overwhelmed.
+**Example:** For instance, I allocate specific hours for IPA drills and IELTS vocabulary.
+**Therefore:** This consistency is the key to mastering a new language.`
+                        },
+                        {
+                            title: "🎓 Professional Context: System Analyst Duties",
+                            questions: ["What is the role of a System Analyst?", "What tools do they use?"],
+                            samples: `**Opinion:** A System Analyst focuses on designing the technical blueprint for software.
+**Reason:** They ensure that the hardware and software components work in harmony.
+**Example:** For example, they create Sequence Diagrams to model system interactions.
+**Therefore:** A good analyst prevents technical debt and ensures system scalability.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Education & System Docs (25 words)",
+                    core: [
+                        { w: "Learn", p: "/lɜːn/", s: "Learn English.", a: "We learn from past project failures." },
+                        { w: "Book", p: "/bʊk/", s: "Read books.", a: "Book a slot for a stakeholder workshop." },
+                        { w: "Grade", p: "/ɡreɪd/", s: "A+ grade.", a: "The system grade determines the security level." },
+                        { w: "Exam", p: "/ɪɡˈzæm/", s: "Final exam.", a: "The QA team must examine the code for bugs." },
+                        { w: "School", p: "/skuːl/", s: "High school.", a: "The technical school of thought differs here." },
+                        { w: "Teach", p: "/tiːtʃ/", s: "Teach me.", a: "Internal training helps teach the new workflow." },
+                        { w: "Class", p: "/klɑːs/", s: "Math class.", a: "The main class in Java handles the logic." },
+                        { w: "Note", p: "/nəʊt/", s: "Take notes.", a: "Release notes explain the new system updates." },
+                        { w: "Hand", p: "/hænd/", s: "Hold my hand.", a: "Hand over the project documentation." },
+                        { w: "Head", p: "/hed/", s: "Head office.", a: "The head of IT approves the budget." }
+                    ],
+                    specialized: [
+                        { w: "Analyst", p: "/ˈænəlɪst/", s: "SA role.", a: "The analyst bridges the gap between teams." },
+                        { w: "Diagram", p: "/ˈdaɪəɡræm/", s: "Flow diagram.", a: "UML diagrams visualize system architecture." },
+                        { w: "Model", p: "/ˈmɒdl/", s: "3D model.", a: "Data modeling defines the database schema." },
+                        { w: "Scope", p: "/skəʊp/", s: "Project scope.", a: "Scope creep leads to project delays." },
+                        { w: "Logic", p: "/ˈlɒdʒɪk/", s: "Clear logic.", a: "The business logic is the core of the app." },
+                        { w: "Method", p: "/ˈmeθəd/", s: "New method.", a: "Agile methodology is preferred in MIS." },
+                        { w: "Network", p: "/ˈnetwɜːk/", s: "Social network.", a: "A secure network infrastructure is essential." },
+                        { w: "Asset", p: "/ˈæset/", s: "Valuable asset.", a: "Digital assets must be protected from risks." },
+                        { w: "Metric", p: "/ˈmetrɪk/", s: "Key metric.", a: "System performance metrics track latency." },
+                        { w: "Map", p: "/mæp/", s: "City map.", a: "Process mapping helps identify bottlenecks." }
+                    ],
+                    fromListening: [
+                        { w: "Campus", p: "/ˈkæmpəs/", context: "The university campus environment." },
+                        { w: "Degree", p: "/dɪˈɡriː/", context: "A master's degree in MIS." },
+                        { w: "Lectured", p: "/ˈlektʃəd/", context: "The professor lectured on database design." },
+                        { w: "Online", p: "/ˈɒnlaɪn/", context: "Remote online learning platforms." },
+                        { w: "Training", p: "/ˈtreɪnɪŋ/", context: "Professional training for new hires." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Be + Adjective",
+                    theory: "Kết hợp 'To Be' với một tính từ (Adjective) để mô tả đặc điểm của người, sự việc hoặc hệ thống. Cấu trúc này rất phổ biến trong IELTS Speaking Part 1.",
+                    formula: "S + am/is/are + Adjective",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "The lecture **is** very interesting and practical.", note: "Mô tả bài giảng bằng tính từ." },
+                        { context: "🎓 MIS", sentence: "The new system **is** highly scalable and cost-effective.", note: "Mô tả đặc tính kỹ thuật của hệ thống." }
+                    ],
+                    exercise: "Viết 2 câu mô tả cẩu trúc học tập của bạn và một hệ thống IT bạn đã dùng."
+                }
+            },
+            "p1-w1-d4": {
+                summary: {
+                    topic: "Hobbies (IELTS) | Stakeholder Management (MIS)",
+                    grammar: "Have + Noun / Do + Activity - Sở thích & Hoạt động",
+                    pronunciation: "/ɒ/ vs /ɔː/ | Connected: Talk about, Log in",
+                    listening: "BBC: The Science of Relaxation",
+                    speaking: "Free Time & Stakeholders (4-Tier Framework)",
+                    vocab: "25 words (Owner, Sponsor, Vendor, Actor...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /ɒ/ vs /ɔː/ (Hot/Sport)",
+                    dailyWords: [
+                        { w: "Hot", p: "/hɒt/" }, { w: "Sport", p: "/spɔːt/" }, { w: "Box", p: "/bɒks/" },
+                        { w: "Talk", p: "/tɔːk/" }, { w: "Stop", p: "/stɒp/" }, { w: "Walk", p: "/wɔːk/" },
+                        { w: "Job", p: "/dʒɒb/" }, { w: "Short", p: "/ʃɔːt/" }, { w: "Cost", p: "/kɒst/" }, { w: "Call", p: "/kɔːl/" }
+                    ],
+                    specializedWords: [
+                        { w: "Process", p: "/ˈprəʊses/" }, { w: "Audit", p: "/ˈɔːdɪt/" }, { w: "Cost", p: "/kɒst/" },
+                        { w: "Report", p: "/rɪˈpɔːt/" }, { w: "Log", p: "/lɒɡ/" }, { w: "Talk", p: "/tɔːk/" },
+                        { w: "Block", p: "/blɒk/" }, { w: "Score", p: "/skɔː/" }, { w: "Model", p: "/ˈmɒdl/" }, { w: "Core", p: "/kɔː/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "Talk about", linking: "/tɔːk əˈbaʊt/", type: "Nối âm", note: "Nối /k/ với /ə/." },
+                        { text: "Hot tea", linking: "/hɒtiː/", type: "Nuốt âm", note: "Nối /t/ với /t/ thành 1 âm." },
+                        { text: "Stop it", linking: "/stɒpɪt/", type: "Nối âm", note: "Nối /p/ với /ɪ/." },
+                        { text: "Walk away", linking: "/wɔːk əˈweɪ/", type: "Nối âm", note: "Nối /k/ với /ə/." },
+                        { text: "Log in", linking: "/lɒɡɪn/", type: "Nối âm", note: "Nối /g/ với /ɪ/." }
+                    ],
+                    steps: [
+                        { num: 1, text: "Xem Video: 'Pronunciation of /ɒ/ vs /ɔː/'", link: "https://www.youtube.com/watch?v=R3XfSg5jUj4" },
+                        { num: 2, text: "Luyện Connected Speech: 'Talk about' và 'Log in'." }
+                    ]
+                },
+                1: {
+                    type: "listening",
+                    title: "BBC: Relaxation & Hobbies",
+                    steps: [
+                        { num: 1, text: "The benefits of doing nothing (BBC):", link: "https://www.bbc.co.uk/learningenglish/features/6-minute-english_2023/ep-230615" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=fXvV7B5L7vI" },
+                        { num: 3, text: "Note các từ vựng chỉ Leisure activities." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Hobbies & Stakeholders (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Favorite Hobbies",
+                            questions: ["What do you enjoy doing?", "How often do you do it?"],
+                            samples: `**Opinion:** I'm genuinely passionate about playing football.
+**Reason:** It is a fantastic way to release stress after a demanding workday.
+**Example:** On average, I hit the pitch with my local team twice a week.
+**Therefore:** It keeps me physically fit and mentally balanced.`
+                        },
+                        {
+                            title: "🎓 Professional Context: Managing Stakeholders",
+                            questions: ["Who is a stakeholder?", "How do you handle them?"],
+                            samples: `**Opinion:** A stakeholder is anyone with an interest in the project results.
+**Reason:** Their support or opposition can make or break the project.
+**Example:** For instance, the Project Sponsor provides the funding, while vendors provide the tech.
+**Therefore:** A BA must engage them early to align their expectations.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Leisure & Stakeholders (25 words)",
+                    core: [
+                        { w: "Play", p: "/pleɪ/", s: "Play football.", a: "Stakeholders play a key role in signing off." },
+                        { w: "Fun", p: "/fʌn/", s: "Have fun.", a: "Interactive UIs add a sense of fun to apps." },
+                        { w: "Like", p: "/laɪk/", s: "I like sports.", a: "The system behaves like a legacy one." },
+                        { w: "Read", p: "/riːd/", s: "Read news.", a: "Read-only access is for basic users." },
+                        { w: "Cook", p: "/kʊk/", s: "I cook daily.", a: "Bad data entry can cook the books." },
+                        { w: "Talk", p: "/tɔːk/", s: "Talk to me.", a: "Daily talk helps in team bonding." },
+                        { w: "Stop", p: "/stɒp/", s: "Stop there.", a: "A stop-gap solution is only temporary." },
+                        { w: "Call", p: "/kɔːl/", s: "Call him.", a: "Call the API to fetch data." },
+                        { w: "Walk", p: "/wɔːk/", s: "Walk fast.", a: "A walk-through session reviews code." },
+                        { w: "Box", p: "/bɒks/", s: "Empty box.", a: "Out-of-the-box features are ready to use." }
+                    ],
+                    specialized: [
+                        { w: "Stakeholder", p: "/ˈsteɪkhəʊldə/", s: "Key stakeholder.", a: "Identify all stakeholders at the start." },
+                        { w: "Sponsor", p: "/ˈspɒnsə/", s: "Project sponsor.", a: "The sponsor provides the project budget." },
+                        { w: "Owner", p: "/ˈəʊnə/", s: "Process owner.", a: "The product owner manages the backlog." },
+                        { w: "Vendor", p: "/ˈvendə/", s: "Tech vendor.", a: "Vendor selection is based on SLAs." },
+                        { w: "Actor", p: "/ˈæktə/", s: "Lead actor.", a: "In Use Cases, an actor triggers an action." },
+                        { w: "Audit", p: "/ˈɔːdɪt/", s: "Annual audit.", a: "The system audit trail tracks every change." },
+                        { w: "Report", p: "/rɪˈpɔːt/", s: "Weekly report.", a: "A status report keeps sponsors informed." },
+                        { w: "Group", p: "/ɡruːp/", s: "Small group.", a: "User groups have different system permissions." },
+                        { w: "Expert", p: "/ˈekspɜːt/", s: "Ask an expert.", a: "SMEs provide domain expertise during elicitation." },
+                        { w: "Client", p: "/ˈklaɪənt/", s: "Ideal client.", a: "Meeting client needs is our top priority." }
+                    ],
+                    fromListening: [
+                        { w: "Relax", p: "/rɪˈlæks/", context: "Watching movies helps me relax." },
+                        { w: "Active", p: "/ˈæktɪv/", context: "An active lifestyle is healthy." },
+                        { w: "Routine", p: "/ruːˈtiːn/", context: "A morning exercise routine." },
+                        { w: "Interest", p: "/ˈɪntrəst/", context: "Conflict of interest among stakeholders." },
+                        { w: "Balance", p: "/ˈbæləns/", context: "Work-life balance is important." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Have + Noun & Do + Activity",
+                    theory: "Dùng 'have + danh từ' để nói về những gì bạn sở hữu hoặc có trong cuộc sống. Dùng 'do + hoạt động' để mô tả sở thích. Cấu trúc này xuất hiện rất nhiều trong IELTS Speaking 'Hobbies & Free Time'.",
+                    formula: "I have + [Noun] | I do + [Activity]",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **do** yoga and **have** a walk every morning.", note: "'Do yoga' = hoạt động, 'have a walk' = thành ngữ cố định." },
+                        { context: "🎓 MIS", sentence: "The team **does** a sprint review and **has** a demo session weekly.", note: "Mô tả hoạt động Agile của nhóm." }
+                    ],
+                    exercise: "Kể tện 3 sở thích của bạn dùng 'I do...' và 3 thứ bạn có dùng 'I have...'."
+                }
+            },
+            "p1-w1-d5": {
+                summary: {
+                    topic: "Motivation (IELTS) | Requirement Elicitation (MIS)",
+                    grammar: "Want to / Need to / Have to - Diễn đạt mong muốn & nhu cầu",
+                    pronunciation: "/θ/ vs /ð/ | Connected: Thank you, With us",
+                    listening: "VOA: Digital Revolution",
+                    speaking: "Learning Passion & Elicitation (4-Tier Framework)",
+                    vocab: "25 words (Trace, Verify, Prioritize, Spec...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /θ/ vs /ð/ (Thin/This)",
+                    dailyWords: [
+                        { w: "Think", p: "/θɪŋk/" }, { w: "This", p: "/ðɪs/" }, { w: "Thank", p: "/θæŋk/" },
+                        { w: "That", p: "/ðæt/" }, { w: "Thing", p: "/θɪŋ/" }, { w: "Those", p: "/ðəʊz/" },
+                        { w: "Thin", p: "/θɪn/" }, { w: "There", p: "/ðeə/" }, { w: "Three", p: "/θriː/" }, { w: "They", p: "/ðeɪ/" }
+                    ],
+                    specializedWords: [
+                        { w: "Method", p: "/ˈmeθəd/" }, { w: "Gather", p: "/ˈɡæðə/" }, { w: "Theory", p: "/ˈθɪəri/" },
+                        { w: "Together", p: "/təˈɡeðə/" }, { w: "Path", p: "/pɑːθ/" }, { w: "Further", p: "/ˈfɜːðə/" },
+                        { w: "Auth", p: "/ɔːθ/" }, { w: "Algorithm", p: "/ˈælɡərɪðəm/" }, { w: "Theme", p: "/θiːm/" }, { w: "Other", p: "/ˈʌðə/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "Think about", linking: "/θɪŋk əˈbaʊt/", type: "Nối âm", note: "Nối /k/ với /ə/." },
+                        { text: "This is", linking: "/ðɪsɪz/", type: "Nối âm", note: "Nối /s/ với /ɪ/." },
+                        { text: "Thank you", linking: "/θæŋk juː/", type: "Nối âm", note: "Nối /k/ với /j/." },
+                        { text: "With us", linking: "/wɪð ʌs/", type: "Nối âm", note: "Nối /ð/ với /ʌ/." },
+                        { text: "Both of", linking: "/bəʊθ əv/", type: "Nối âm", note: "Nối /θ/ với /ə/." }
+                    ],
+                    steps: [
+                        { num: 1, text: "Xem Video: 'Pronunciation of /θ/ vs /ð/'", link: "https://www.youtube.com/watch?v=F3XyY3e7u1E" },
+                        { num: 2, text: "Luyện Connected Speech: 'Thank you' và 'This is'." }
+                    ]
+                },
+                1: {
+                    type: "listening",
+                    title: "VOA: Digital Transformation",
+                    steps: [
+                        { num: 1, text: "Nghe về cách công nghệ thay đổi thế giới (VOA):", link: "https://learningenglish.voanews.com/a/lets-learn-english-lesson-51-a-good-habit/3818815.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=5V_lP6W9J9Y" },
+                        { num: 3, text: "Note 5 động từ mô tả sự thay đổi." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Motivation & Elicitation (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Learning Motivation",
+                            questions: ["Why do you want to learn English?", "What is your target?"],
+                            samples: `**Opinion:** I believe mastering English is a game-changer for my career.
+**Reason:** Most advanced MIS documentation and global certifications are in English.
+**Example:** For instance, reading BABOK or attending AWS webinars requires professional English.
+**Therefore:** I'm aiming for an IELTS 7.0 to unlock global opportunities.`
+                        },
+                        {
+                            title: "🎓 Professional Context: Requirements Elicitation",
+                            questions: ["How do you gather user needs?", "What are the common challenges?"],
+                            samples: `**Opinion:** Facilitating workshops is the most effective elicitation method.
+**Reason:** It brings all stakeholders together to resolve conflicting requirements.
+**Example:** I recently managed a session to define user roles for a new portal.
+**Therefore:** It ensures the requirements are complete, clear, and verified by everyone.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Feelings & Requirements (25 words)",
+                    core: [
+                        { w: "Think", p: "/θɪŋk/", s: "Think twice.", a: "Critical thinking is a key soft skill for BAs." },
+                        { w: "Happy", p: "/ˈhæpi/", s: "Happy users.", a: "User satisfaction is a primary project goal." },
+                        { w: "Hope", p: "/həʊp/", s: "I hope so.", a: "We hope to reduce system latency by 20%." },
+                        { w: "Wish", p: "/wɪʃ/", s: "Best wishes.", a: "A 'wish list' of features often exceeds the budget." },
+                        { w: "Feel", p: "/fiːl/", s: "Feel good.", a: "BAs must have empathy to feel user pain points." },
+                        { w: "Care", p: "/keə/", s: "Care for it.", a: "Data care and ethics are rising concerns." },
+                        { w: "Need", p: "/niːd/", s: "Urgent need.", a: "Business needs are translated into technical specs." },
+                        { w: "Fear", p: "/fɪə/", s: "No fear.", a: "Fear of change is a common stakeholder barrier." },
+                        { w: "Love", p: "/lʌv/", s: "I love tech.", a: "Users love the simple interface design." },
+                        { w: "Hate", p: "/heɪt/", s: "I hate rain.", a: "Developers hate working with ambiguous requirements." }
+                    ],
+                    specialized: [
+                        { w: "Requirement", p: "/rɪˈkwaɪəmənt/", s: "Legal requirement.", a: "Requirements are the foundation of any system." },
+                        { w: "Elicitation", p: "/ɪˌlɪsɪˈteɪʃn/", s: "Technique name.", a: "Elicitation is more than just 'gathering' information." },
+                        { w: "Verify", p: "/ˈverɪfaɪ/", s: "Verify identity.", a: "We verify requirements to ensure they are accurate." },
+                        { w: "Prioritize", p: "/praɪˈɒrətaɪz/", s: "Prioritize tasks.", a: "Use MoSCoW to prioritize the product backlog." },
+                        { w: "Trace", p: "/treɪs/", s: "Trace the path.", a: "Traceability links requirements to test results." },
+                        { w: "Gap", p: "/ɡæp/", s: "A small gap.", a: "Gap analysis identifies current vs future states." },
+                        { w: "Valid", p: "/ˈvælɪd/", s: "Valid data.", a: "Input validation prevents system errors." },
+                        { w: "Detail", p: "/ˈdiːteɪl/", s: "Fine detail.", a: "The FSD contains all technical details." },
+                        { w: "Spec", p: "/spek/", s: "Check specs.", a: "Functional specs define system capabilities." },
+                        { w: "Theme", p: "/θiːm/", s: "Main theme.", a: "Epics and themes help organize large project scopes." }
+                    ],
+                    fromListening: [
+                        { w: "Digital", p: "/ˈdɪdʒɪtl/", context: "The digital transformation of banking." },
+                        { w: "Device", p: "/dɪˈvaɪs/", context: "Connected IoT devices in a smart city." },
+                        { w: "App", p: "/æp/", context: "Downloading a new enterprise app." },
+                        { w: "Innovation", p: "/ˌnəˈveɪʃn/", context: "Fostering innovation in IT teams." },
+                        { w: "Improve", p: "/ɪmˈpruːv/", context: "Continuous improvement of processes." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Want to / Need to / Have to",
+                    theory: "Bộ ba 'want to', 'need to', 'have to' biểu đạt mức độ mong muốn khác nhau. 'Want to' = mong muốn cá nhân. 'Need to' = cần thiết thực tế. 'Have to' = bắt buộc (ngoại lực).",
+                    formula: "S + want to / need to / have to + V (nguyên mẫu)",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **want to** improve my English to reach IELTS 7.0.", note: "Mong muốn mạnh mẽ từ bên trong." },
+                        { context: "🎓 MIS", sentence: "BAs **need to** verify all requirements before the sprint begins.", note: "Nhu cầu có tính chất bắt buộc trong quy trình." }
+                    ],
+                    exercise: "Viết 1 câu cho mỗi loại: want to / need to / have to liên quan đến mục tiêu học tiếng Anh của bạn."
+                }
+            },
+            "p1-w1-d6": {
+                summary: {
+                    topic: "Travel (IELTS) | Data & Infrastructure Basics (MIS)",
+                    grammar: "Can / Can't - Khả năng & Hệ thống IT",
+                    pronunciation: "/ʊ/ vs /uː/ | Connected: Good at, Two hours",
+                    listening: "BBC: Future Transport",
+                    speaking: "Past Trips & Analytics (4-Tier)",
+                    vocab: "25 words (Data, Database, Query, Table...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /ʊ/ vs /uː/ (Book/Boot)",
+                    dailyWords: [{ w: "Book", p: "/bʊk/" }, { w: "Boot", p: "/buːt/" }],
+                    specializedWords: [{ w: "Input", p: "/ˈɪnpʊt/" }, { w: "Execute", p: "/ˈeksɪkjuːt/" }],
+                    connectedSpeech: [
+                        { text: "Good at", linking: "/ɡʊdæt/", type: "Nối âm" },
+                        { text: "Two hours", linking: "/tuː waʊəz/", type: "Nối âm" }
+                    ],
+                    steps: [{ num: 1, text: "Luyện phát âm cặp pull - pool, full - fool." }]
+                },
+                1: {
+                    type: "listening",
+                    title: "BBC: Future Transport",
+                    steps: [
+                        { num: 1, text: "Transport of the future (BBC):", link: "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-180208" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=rX_mO_Q5qN0" },
+                        { num: 3, text: "Note cụm từ về Infrastructure và Transport." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Travel & Data Analytics (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Past Traveling",
+                            questions: ["Describe a trip you took recently."],
+                            samples: `**Opinion:** My recent trip to Da Nang was incredibly refreshing.
+**Reason:** I needed to escape the city noise and enjoy the sea.
+**Example:** Relaxing at My Khe beach and eating seafood helped me de-stress.
+**Therefore:** It was the perfect break before starting a new project.`
+                        },
+                        {
+                            title: "🎓 Professional Context: Data & Analytics",
+                            questions: ["How does your company use data?"],
+                            samples: `**Opinion:** Data is the backbone of our decision-making process.
+**Reason:** It provides objective insights rather than relying on guesswork.
+**Example:** We analyze user behavior data to optimize the app's navigation.
+**Therefore:** Using analytics consistently leads to a better user experience.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Travel & Data Mastery (25 words)",
+                    core: [
+                        { w: "Travel", p: "/ˈtrævl/", s: "Frequent travel.", a: "Data travel time is critical for system performance." },
+                        { w: "Safe", p: "/seɪf/", s: "Safe trip.", a: "Keep the backup in a safe, off-site location." }
+                    ],
+                    specialized: [
+                        { w: "Database", p: "/ˈdeɪtəbeɪs/", s: "SQL Database.", a: "A relational database ensures data integrity." },
+                        { w: "Query", p: "/ˈkwɪəri/", s: "SQL query.", a: "Optimizing queries speeds up the dashboard." }
+                    ],
+                    fromListening: [{ w: "Destination", p: "/ˌdestɪˈneɪʃn/", context: "Hanoi is a top tourist destination." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Can / Can't",
+                    theory: "'Can' diễn tả khả năng, sự cho phép hoặc năng lực của hệ thống. 'Can't' là phủ định. Modal verb này không cần thêm '-s' với chủ ngữ số ít.",
+                    formula: "S + can + V (nguyên mẫu, không 'to')",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **can** speak English and Vietnamese fluently.", note: "Diễn tả khả năng ngôn ngữ." },
+                        { context: "🎓 MIS", sentence: "The system **can** process 10,000 transactions per second.", note: "Mô tả năng lực xử lý của hệ thống." }
+                    ],
+                    exercise: "Viết 3 câu bạn 'can do' và 1 câu bạn 'can't do yet' liên quan đến tiếng Anh."
+                }
+            },
+            "p1-w1-d7": {
+                summary: {
+                    topic: "Weekly Review | Mock Test 1 (Foundation)",
+                    grammar: "Review: Be / Have / Do / Can - Tổng ôn Tuần 1",
+                    pronunciation: "Master 12 Vowels | Video Challenge",
+                    listening: "Deep Dictation (Tech & Jobs)",
+                    speaking: "Full Part 1 Simulation",
+                    vocab: "150-Word Audit (Core + MIS)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "IPA Review: 12 Vowels Mastery",
+                    steps: [{ num: 1, text: "Review all pairs from Day 1 to Day 6." }, { num: 2, text: "Record a video of yourself reading 30 key terms." }]
+                },
+                1: {
+                    type: "listening",
+                    title: "Mock Listening: Foundation Review",
+                    steps: [{ num: 1, text: "Listen to the 'MIS Overview' clip and dictate the first 60 seconds." }]
+                },
+                2: {
+                    type: "speaking",
+                    title: "Mock Speaking Test: Phase 1 Part 1",
+                    scenarios: [{ title: "🔥 Full Part 1 Simulation", questions: ["Study/Work", "Routine", "Hobbies", "Future Plans"], samples: "Apply the 4-Tier Framework (Opinion, Reason, Example, Therefore) to at least 3 answers." }]
+                },
+                3: {
+                    type: "vocabulary",
+                    title: "Weekly Vocab Audit (150 Words)",
+                    core: [{ w: "Review", p: "/rɪˈvjuː/", s: "Weekly review.", a: "Reviewing requirements prevents costly rework." }],
+                    specialized: [{ w: "Audit", p: "/ˈɔːdɪt/", s: "Internal audit.", a: "BAs often audit processes to find bottlenecks." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Review: Be / Have / Do / Can",
+                    theory: "Tổng ôn 4 động từ nền tảng của Tuần 1. Đây là 'bộ tứ vũ khí' giúp bạn xây dựng mọi câu cơ bản trong tiếng Anh.",
+                    formula: "I am | I have | I do | I can",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **am** a learner, I **have** a plan, I **do** my best, and I **can** improve.", note: "Dùng cả 4 trong 1 câu phức hợp." },
+                        { context: "🎓 MIS", sentence: "The BA **is** experienced, **has** domain knowledge, **does** gap analysis, and **can** model processes.", note: "Mô tả toàn diện vai trò BA." }
+                    ],
+                    exercise: "Viết 1 đoạn văn ngắn (4-5 câu) sử dụng cả 4 động từ: am/is/are, have/has, do/does, can. Chủ đề: 'Tại sao bạn học IELTS?'."
+                }
+            },
+            "p1-w2-d1": {
+                summary: {
+                    topic: "Family & Home (IELTS) | Org Structure (MIS)",
+                    grammar: "Simple Present: S + V(s/es) - Mô tả sự thật & thói quen",
+                    pronunciation: "/eɪ/ & /aɪ/ | Connected: Take away, My own",
+                    listening: "VOA: The Modern Family",
+                    speaking: "Family & Hierarchy (4-Tier Focus)",
+                    vocab: "25 words (Parent, Child, CEO, Level...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /eɪ/ - /aɪ/ (Diphthongs)",
+                    dailyWords: [{ w: "Take", p: "/teɪk/" }, { w: "Time", p: "/taɪm/" }],
+                    specializedWords: [{ w: "State", p: "/steɪt/" }, { w: "Design", p: "/dɪˈzaɪn/" }],
+                    connectedSpeech: [{ text: "Take a break", linking: "/teɪkəbreɪk/", type: "Nối âm" }]
+                },
+                1: {
+                    type: "listening", title: "VOA: Family Dynamics", steps: [
+                        { num: 1, text: "VOA Lesson 12: Family Roles (VOA):", link: "https://learningenglish.voanews.com/a/lets-learn-english-lesson-12-meet-my-family/3277764.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=yW99n3x8N0k" }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Family & Hierarchy (4-Tier Focus)",
+                    scenarios: [
+                        { title: "🌱 Daily: Family", questions: ["Describe your family."], samples: "Opinion: I have a nuclear family. Reason: Closely-knit. therefore: Supportive." },
+                        { title: "🎓 Professional: Hierarchy", questions: ["Describe your team structure."], samples: "Opinion: We have a flat structure. Reason: Faster decision-making. Therefore: Agile." }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Family & Org (25 words)",
+                    core: [{ w: "Relative", p: "/ˈrelətɪv/", s: "Blood relative.", a: "A relative path is used in file systems." }],
+                    specialized: [{ w: "Hierarchy", p: "/ˈhaɪərɑːki/", s: "Corporate hierarchy.", a: "MIS roles follow a strict hierarchy." }],
+                    fromListening: [{ w: "Nuclear", p: "/ˈnjuːkliə/", context: "Nuclear family vs extended." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Simple Present - S + V(s/es)",
+                    theory: "Thì hiện tại đơn diễn tả sự thật hiển nhiên, thói quen, hoặc đặc điểm lập lại. Với chủ ngữ He/She/It phải thêm '-s' hoặc '-es' vào động từ.",
+                    formula: "I/You/We/They + V | He/She/It + V-s/es",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "My mother **cooks** dinner every evening.", note: "'Cooks' = V + s vì chủ ngữ là 'My mother' (she)." },
+                        { context: "🎓 MIS", sentence: "The system **processes** each request within 200ms.", note: "Mô tả hiệu suất định kỳ." }
+                    ],
+                    exercise: "Viết 3 câu về thói quen hàng ngày của bạn. Dùng 'I + V' và 'She/He + V-s'."
+                }
+            },
+            "p1-w2-d2": {
+                summary: {
+                    topic: "Accommodation (IELTS) | Hardware & Infrastructure (MIS)",
+                    grammar: "Simple Present: There is/are... - Mô tả đồ vật & hệ thống",
+                    pronunciation: "/ɔɪ/ & /əʊ/ | Connected: Boy and, Go out",
+                    listening: "BBC: Smart Homes",
+                    speaking: "House & Tech Inventory (4-Tier)",
+                    vocab: "25 words (Server, Client, Host, Port...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /ɔɪ/ - /əʊ/ (Diphthongs)",
+                    dailyWords: [{ w: "Boy", p: "/bɔɪ/" }, { w: "Go", p: "/ɡəʊ/" }],
+                    specializedWords: [{ w: "Deploy", p: "/dɪˈplɔɪ/" }, { w: "Code", p: "/kəʊd/" }],
+                    connectedSpeech: [{ text: "Go on", linking: "/ɡəʊwɒn/", type: "Nối âm" }]
+                },
+                1: {
+                    type: "listening", title: "BBC: Digital Living", steps: [
+                        { num: 1, text: "Smart tech and climate change (BBC):", link: "https://www.bbc.co.uk/learningenglish/features/6-minute-english/ep-211007" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=O14AOnK7LIA" }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "House & Hardware (4-Tier Focus)",
+                    scenarios: [
+                        { title: "🌱 Daily: Describe House", questions: ["Tell me about your house."], samples: "Opinion: My flat is cozy. Reason: Smart layout. Therefore: I love stay home." },
+                        { title: "🎓 Professional: Infrastructure", questions: ["What hardware do you use?"], samples: "Opinion: High-end servers are vital. Reason: High traffic. Therefore: Reliability." }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Hardware & Housing (25 words)",
+                    core: [{ w: "Window", p: "/ˈwɪndəʊ/", s: "Open windows.", a: "Operating system window management." }],
+                    specialized: [{ w: "Server", p: "/ˈsɜːvə/", s: "Main server.", a: "Clients must authenticate with the server." }],
+                    fromListening: [{ w: "Appliance", p: "/əˈplaɪəns/", context: "Smart household appliances." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: There is / There are",
+                    theory: "Dùng 'There is' + danh từ số ít để thông báo sự tồn tại của một vật. Dùng 'There are' + danh từ số nhiều. Rất phổ biến khi mô tả căn phòng, địa điểm, hay kiến trúc hệ thống.",
+                    formula: "There is + [N số ít] | There are + [N số nhiều]",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "**There is** a coffee shop near my house.", note: "Mô tả sự tồn tại của 1 địa điểm." },
+                        { context: "🎓 MIS", sentence: "**There are** three servers in our data center.", note: "Mô tả cấu hình hạ tầng IT." }
+                    ],
+                    exercise: "Mô tả phòng học/văn phòng của bạn bằng 3 câu There is/are."
+                }
+            },
+            "p1-w2-d3": {
+                summary: {
+                    topic: "Housework (IELTS) | Roles & Accountabilities (MIS)",
+                    grammar: "Simple Present: Frequency Adverbs (always/usually/often) - Tần suất",
+                    pronunciation: "/aʊ/ & /ɪə/ | Connected: How about, Clear it",
+                    listening: "VOA: Home Life Tasks",
+                    speaking: "Helping & RACI (4-Tier)",
+                    vocab: "25 words (Owner, Expert, Vendor, Admin...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /aʊ/ - /ɪə/ (Diphthongs)",
+                    dailyWords: [{ w: "How", p: "/haʊ/" }, { w: "Ear", p: "/ɪə/" }],
+                    specializedWords: [{ w: "Auth", p: "/ɔːθ/" }, { w: "Engineer", p: "/ˌendʒɪˈnɪə/" }]
+                },
+                1: {
+                    type: "listening", title: "VOA: Daily Responsibilities", steps: [
+                        { num: 1, text: "Listen for chore verbs (VOA):", link: "https://learningenglish.voanews.com/a/lets-learn-english-lesson-14-how-about-this/3313264.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=R9_mQ_Q5qN0" }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Responsibilities (4-Tier Focus)",
+                    scenarios: [
+                        { title: "🌱 Daily: Housework", questions: ["Do you do housework?"], samples: "Opinion: I help out daily. Reason: Shared responsibility. Therefore: Clean home." },
+                        { title: "🎓 Professional: Accountabilities", questions: ["What is your role?"], samples: "Opinion: BAs are accountable for requirements. Reason: Accuracy. Therefore: Success." }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Roles & Tasks (25 words)",
+                    core: [{ w: "Helper", p: "/ˈhelpə/", s: "Good helper.", a: "Helper functions simplify the code." }],
+                    specialized: [{ w: "Accountable", p: "/əˈkaʊntəbl/", s: "Stay accountable.", a: "RACI matrix defines accountability." }],
+                    fromListening: [{ w: "Routine", p: "/ruːˈtiːn/", context: "Daily housework routine." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Frequency Adverbs (always/usually/often)",
+                    theory: "Tần suất trạng từ đặt sau chủ ngữ nhưng TRƯỚC động từ chính. Rất hữu dụng để mô tả thói quen trong IELTS Part 1.",
+                    formula: "S + always/usually/often/sometimes/rarely/never + V",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **always** review my vocabulary before sleeping.", note: "'Always' = 100%, đặt trước động từ." },
+                        { context: "🎓 MIS", sentence: "Our team **usually** holds a sprint planning meeting on Monday.", note: "'Usually' = thường xuyên nhưng không phải lúnc nào." }
+                    ],
+                    exercise: "Viết 5 câu về các thói quen học IELTS của bạn, mỗi câu dùng 1 trạng từ tần suất khác nhau."
+                }
+            },
+            "p1-w2-d4": {
+                summary: {
+                    topic: "Hometown (IELTS) | Location & Hosting (MIS)",
+                    grammar: "Simple Present: Wh- Questions (Where/What/Who) - Hỏi về địa điểm",
+                    pronunciation: "/eə/ & /ʊə/ | Connected: Where are, Sure of",
+                    listening: "BBC: Cities of the Future",
+                    speaking: "Hometown & Data Centers (4-Tier)",
+                    vocab: "25 words (Region, District, Cloud, On-premise...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Phát âm /eə/ - /ʊə/ (Diphthongs)",
+                    dailyWords: [{ w: "Where", p: "/weə/" }, { w: "Sure", p: "/ʃʊə/" }],
+                    specializedWords: [{ w: "Area", p: "/ˈeəriə/" }, { w: "Secure", p: "/sɪˈkjʊə/" }]
+                },
+                1: {
+                    type: "listening", title: "BBC: Urban Growth", steps: [
+                        { num: 1, text: "Cities of the future (BBC):", link: "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-160714" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=Je_EAs69K-I" }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Locations (4-Tier Focus)",
+                    scenarios: [
+                        { title: "🌱 Daily: Hometown", questions: ["Where is your hometown?"], samples: "Opinion: Hanoi is vibrant. Reason: Capital city. Therefore: Lots of opportunities." },
+                        { title: "🎓 Professional: Cloud vs On-Prem", questions: ["Where is your data stored?"], samples: "Opinion: We prefer Cloud hosting. Reason: Scalability. Therefore: Cost-effective." }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Location & Cloud (25 words)",
+                    core: [{ w: "Place", p: "/pleɪs/", s: "Nice place.", a: "Place the files in the shared drive." }],
+                    specialized: [{ w: "Hosting", p: "/ˈhəʊstɪŋ/", s: "Cloud hosting.", a: "Hosting costs are part of the OpEx." }],
+                    fromListening: [{ w: "Landscape", p: "/ˈlændskeɪp/", context: "Competitive tech landscape." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Wh- Questions",
+                    theory: "Câu hỏi Wh- bắt đầu bằng What / Where / Who / When / Why / How. Đây là nền tảng để hỏi thông tin cụ thể và là kỹ năng cịt lõi trong IELTS Speaking Part 1.",
+                    formula: "Wh- word + do/does + S + V? | Wh- word + is/are + S?",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "**Where do** you usually go at the weekend?", note: "'Where' + 'do' + chủ ngữ + động từ." },
+                        { context: "🎓 MIS", sentence: "**What is** the SLA threshold for this API endpoint?", note: "Hỏi về chỉ số kỹ thuật." }
+                    ],
+                    exercise: "Viết 5 câu hỏi Wh- để hỏi về thành phố / văn phòng của bạn."
+                }
+            },
+            "p1-w2-d5": {
+                summary: {
+                    topic: "Neighborhood (IELTS) | Environment & Ecology (MIS)",
+                    grammar: "Simple Present: Negative (don't/doesn't) - Phủ định",
+                    pronunciation: "Ending Sounds /s/ /z/ /ɪz/ | Connected: This is, Phases",
+                    listening: "VOA: Green Technology",
+                    speaking: "My Area & Green IT (4-Tier)",
+                    vocab: "25 words (Safe, Busy, Green, Sustain...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "Ending Sounds /s/ /z/ /ɪz/",
+                    dailyWords: [{ w: "Places", p: "/ˈpleɪsɪz/" }, { w: "Works", p: "/wɜːks/" }],
+                    specializedWords: [{ w: "Releases", p: "/rɪˈliːsɪz/" }, { w: "Users", p: "/ˈjuːzəz/" }]
+                },
+                1: {
+                    type: "listening", title: "VOA: Sustainable Tech", steps: [
+                        { num: 1, text: "Watch for green MIS terms (VOA):", link: "https://learningenglish.voanews.com/a/lets-learn-english-lesson-51-a-good-habit/3818815.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=5V_lP6W9J9Y" }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Environment (4-Tier Focus)",
+                    scenarios: [
+                        { title: "🌱 Daily: Neighborhood", questions: ["Is your area good?"], samples: "Opinion: It's very convenient. Reason: Near shops. Therefore: Saves time." },
+                        { title: "🎓 Professional: Green IT", questions: ["How to save energy in IT?"], samples: "Opinion: Server virtualization is key. Reason: Fewer machines. Therefore: Less carbon footprint." }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Area & Sustainability (25 words)",
+                    core: [{ w: "Quiet", p: "/ˈkwaɪət/", s: "Quiet street.", a: "System quiet hours for maintenance." }],
+                    specialized: [{ w: "Virtualization", p: "/ˌvɜːrtʃuələˈzeɪʃn/", s: "Server virt.", a: "Virtualization optimizes hardware usage." }],
+                    fromListening: [{ w: "Biodiversity", p: "/ˌbaɪəʊdaɪˈvɜːrsəti/", context: "Impact on biodiversity." }]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Simple Present Negative (don't / doesn't)",
+                    theory: "Phủ định thì hiện tại đơn dùng 'do not (don't)' với I/You/We/They và 'does not (doesn't)' với He/She/It. Khi dùng 'doesn't', động từ chính không được thêm '-s'.",
+                    formula: "S + don't/doesn't + V (nguyên mẫu)",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **don't** live near the city center.", note: "Phủ định đơn giản với chủ ngữ 'I'." },
+                        { context: "🎓 MIS", sentence: "Our system **doesn't** support legacy file formats.", note: "Mô tả giới hạn của hệ thống." }
+                    ],
+                    exercise: "Viết 4 câu phủ định (2 dùng don't, 2 dùng doesn't) về những điều bạn không làm hàng ngày."
+                }
+            },
+            "p1-w2-d6": {
+                summary: {
+                    topic: "Week 2 Review | Connected Speech Mastery",
+                    grammar: "Review Simple Present: (+) (-) (?) - Tổng ôn Tuần 2",
+                    pronunciation: "Review 8 Diphthongs | Shadowing Challenge",
+                    listening: "BBC: Smart Living Summary",
+                    speaking: "Full Part 1 Mock Test",
+                    vocab: "Weekly Audit (Accommodation & Org)"
+                },
+                0: { type: "pronunciation", title: "Review Diphthongs", steps: [{ num: 1, text: "Master 8 glide vowels." }] },
+                1: {
+                    type: "listening", title: "Review: Internet of Things", steps: [
+                        { num: 1, text: "The Internet of Things (BBC):", link: "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-170323" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=OueO_xIDrS0" }
+                    ]
+                },
+                2: { type: "speaking", title: "Part 1 Mock", scenarios: [{ title: "🔥 Full Set", questions: ["Family", "House", "Hometown"], samples: "Focus on fluency and diphthongs." }] },
+                3: { type: "vocabulary", title: "Audit", core: [{ w: "Audit", p: "/ˈɔːdɪt/", s: "Weekly check.", a: "Audit for progress." }] },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Review: Simple Present (+) (-) (?)",
+                    theory: "Tổng ôn toàn bộ Simple Present tuần 2. 3 dạng: Khẳng định (V/V-s), Phủ định (don't/doesn't + V), Hỏi (Do/Does + S + V?).",
+                    formula: "(+) S+V | (-) S+don't/doesn't+V | (?) Do/Does+S+V?",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "**Does** she **study** English every day? - Yes, she **does**.", note: "Câu hỏi Yes/No với chủ ngữ số ít." },
+                        { context: "🎓 MIS", sentence: "**Do** BAs **write** the SRS document? - Yes, they **do**.", note: "Tụng ôn vời câu hỏi mô tả quy trình BA." }
+                    ],
+                    exercise: "Viết 2 câu khẳng định, 2 câu phủ định, và 2 câu hỏi về thói quen học IELTS của bạn."
+                }
+            },
+            "p1-w3-d1": {
+                summary: {
+                    topic: "Work & Study (IELTS) | Daily Stand-up Basics (MIS)",
+                    grammar: "Present Continuous (Thì hiện tại tiếp diễn)",
+                    pronunciation: "/p/, /b/, /t/, /d/ | Connected: What are you doing?",
+                    listening: "VOA: What Are You Doing?",
+                    speaking: "Present Activities & Stand-ups (4-Tier Focus)",
+                    vocab: "25 words (Colleague, Sprint, Backlog, Task...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "IPA Consonants 1: /p/, /b/, /t/, /d/",
+                    dailyWords: [
+                        { w: "Play", p: "/pleɪ/" }, { w: "Big", p: "/bɪɡ/" }, { w: "Task", p: "/tɑːsk/" }, { w: "Data", p: "/ˈdeɪtə/" },
+                        { w: "Point", p: "/pɔɪnt/" }, { w: "Best", p: "/best/" }, { w: "Time", p: "/taɪm/" }, { w: "Done", p: "/dʌn/" },
+                        { w: "Plan", p: "/plæn/" }, { w: "Build", p: "/bɪld/" }
+                    ],
+                    specializedWords: [
+                        { w: "Project", p: "/ˈprɒdʒekt/" }, { w: "Business", p: "/ˈbɪznəs/" }, { w: "Tool", p: "/tuːl/" }, { w: "Deliver", p: "/dɪˈlɪvə/" },
+                        { w: "Present", p: "/ˈpreznt/" }, { w: "Backlog", p: "/ˈbæklɒɡ/" }, { w: "Ticket", p: "/ˈtɪkɪt/" }, { w: "Dashboard", p: "/ˈdæʃbɔːd/" },
+                        { w: "Team", p: "/tiːm/" }, { w: "Design", p: "/dɪˈzaɪn/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "What are you doing?", linking: "/wɒtərijuduːɪŋ/", type: "Biến âm", note: "Âm /t/ biến thành âm /r/ nhẹ (flapping)." },
+                        { text: "Working on", linking: "/wɜːkɪŋɒn/", type: "Nối âm", note: "Nối phụ âm chặn /ŋ/ sang nguyên âm /ɒ/." },
+                        { text: "Ask a question", linking: "/ɑːskəˈkwestʃən/", type: "Nối âm", note: "Nối /k/ sang /ə/." },
+                        { text: "Send it", linking: "/sendɪt/", type: "Nối âm", note: "Nối /d/ sang /ɪ/." }
+                    ],
+                    steps: [
+                        { num: 1, text: "Xem Video: 'Consonants /p/ /b/ /t/ /d/'", link: "https://www.youtube.com/watch?v=0kIovgBivK0" },
+                        { num: 2, text: "Luyện bật hơi mạnh cho /p/ và /t/." }
+                    ]
+                },
+                1: {
+                    type: "listening",
+                    title: "VOA: Working Life",
+                    steps: [
+                        { num: 1, text: "VOA Lesson 7: What Are You Doing? (VOA):", link: "http://learningenglish.voanews.com/a/lets-learn-english-lesson-7-what-are-you-doing/3345754.html" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=R94yvE50I9Q" },
+                        { num: 3, text: "Note lại các hành động Anna thấy đồng nghiệp đang làm." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Current Activities (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Working & Studying",
+                            questions: ["What are you doing these days?", "How are you improving your English?"],
+                            samples: `**Opinion:** I'm currently focusing on my IELTS preparation every morning.
+**Reason:** I'm trying to build a solid foundation before taking the actual exam.
+**Example:** For instance, I am attending online classes and practicing IPA drills daily.
+**Therefore:** This consistent effort is helping me feel more confident in my skills.`
+                        },
+                        {
+                            title: "🎓 Professional Context: The Daily Stand-up",
+                            questions: ["What are you working on right now?", "Are there any obstacles?"],
+                            samples: `**Opinion:** Right now, I'm analyzing the user backlog for the new app module.
+**Reason:** It's important to clarify the requirements before the next sprint starts.
+**Example:** I'm currently documenting the functional specs for the login feature.
+**Therefore:** I don't have any major blockers at the moment and expect to finish by EOD.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Work & Agile Basics (25 words)",
+                    core: [
+                        { w: "Colleague", p: "/ˈkɒliːɡ/", s: "I drink coffee with my colleague.", a: "Collaboration with colleagues enhances project output." },
+                        { w: "Deadline", p: "/ˈdedlaɪn/", s: "I have a deadline tomorrow.", a: "Meeting regulatory deadlines is critical for compliance." },
+                        { w: "Productivity", p: "/ˌprɒdʌkˈtɪvəti/", s: "Reading books improves my productivity.", a: "We measure developer productivity through sprint velocity." },
+                        { w: "Distraction", p: "/dɪˈstrækʃn/", s: "Social media is a distraction.", a: "Minimizing workplace distractions boosts concentration." },
+                        { w: "Environment", p: "/ɪnˈvaɪrənmənt/", s: "I like a quiet study environment.", a: "A supportive environment fosters innovation." },
+                        { w: "Flexible", p: "/ˈfleksəbl/", s: "My schedule is flexible.", a: "Flexible working arrangements attract top talent." },
+                        { w: "Remote", p: "/rɪˈməʊt/", s: "I am working remote today.", a: "Remote monitoring systems track server health." },
+                        { w: "Session", p: "/ˈseʃn/", s: "We have a study session.", a: "The elicitation session produced clear requirements." },
+                        { w: "Balance", p: "/ˈbæləns/", s: "I need work-life balance.", a: "Balance sheets provide a snapshot of financial health." },
+                        { w: "Improvement", p: "/ɪmˈpruːvmənt/", s: "I see some improvement.", a: "Continuous process improvement reduces waste." }
+                    ],
+                    specialized: [
+                        { w: "Increment", p: "/ˈɪŋkrɪmənt/", s: "Daily increment.", a: "The product increment must be potentially releasable." },
+                        { w: "Sprint", p: "/sprɪnt/", s: "A short sprint.", a: "A 2-week sprint is common in Scrum teams." },
+                        { w: "Backlog", p: "/ˈbæklɒɡ/", s: "Book backlog.", a: "The product backlog contains all desired features." },
+                        { w: "Obstacle", p: "/ˈɒbstəkl/", s: "Road obstacle.", a: "We identify obstacles during the daily stand-up." },
+                        { w: "Ticket", p: "/ˈtɪkɪt/", s: "Movie ticket.", a: "Jira tickets track individual task progress." },
+                        { w: "Status", p: "/ˈsteɪtəs/", s: "Flight status.", a: "Reporting the current task status is mandatory." },
+                        { w: "Sync", p: "/sɪŋk/", s: "Sync phone.", a: "The daily sync ensures team alignment." },
+                        { w: "Progress", p: "/ˈprəʊɡres/", s: "Making progress.", a: "We track progress using a burndown chart." },
+                        { w: "Delivery", p: "/dɪˈlɪvəri/", s: "Fast delivery.", a: "Continuous delivery ensures frequent software releases." },
+                        { w: "Update", p: "/ˌʌpˈdeɪt/", s: "Profile update.", a: "Provide a brief update on your current activity." }
+                    ],
+                    fromListening: [
+                        { w: "Recording", p: "/rɪˈkɔːdɪŋ/", context: "The team is recording a new podcast." },
+                        { w: "Bothering", p: "/ˈbɒðərɪŋ/", context: "I'm sorry for bothering you right now." },
+                        { w: "Boss", p: "/bɒs/", context: "I need to report this to my boss." },
+                        { w: "Co-worker", p: "/ˈkəʊ wɜːkə/", context: "My co-worker is helping me with SQL." },
+                        { w: "Task", p: "/tɑːsk/", context: "I have a difficult task to complete today." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Present Continuous",
+                    theory: "Dùng để diễn tả hành động đang xảy ra tại thời điểm nói hoặc các dự án đang thực hiện trong giai đoạn hiện tại.",
+                    formula: "S + am/is/are + V-ing",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **am practicing** my pronunciation right now.", note: "Đang thực hiện ngay lúc này." },
+                        { context: "🎓 MIS", sentence: "We **are building** a new dashboard for the team.", note: "Dự án đang trong quá trình thực hiện." }
+                    ],
+                    exercise: "Dùng Present Continuous để báo cáo 3 task bạn đang làm trong buổi Stand-up sáng nay."
+                }
+            },
+            "p1-w3-d2": {
+                summary: {
+                    topic: "Office Life (IELTS) | Work Environment & Agile Tools (MIS)",
+                    grammar: "Simple Present vs. Present Continuous (Contrast)",
+                    pronunciation: "/k, ɡ, f, v/ | Connected: Focus on, Look at",
+                    listening: "BBC: Office Politics",
+                    speaking: "Environment & Tools (4-Tier Focus)",
+                    vocab: "25 words (Equipment, Coworker, Jira, Confluence...)"
+                },
+                0: {
+                    type: "pronunciation",
+                    title: "IPA Consonants 2: /k, ɡ, f, v/",
+                    dailyWords: [
+                        { w: "Keep", p: "/kiːp/" }, { w: "Good", p: "/ɡʊd/" }, { w: "Fine", p: "/faɪn/" }, { w: "Very", p: "/ˈveri/" },
+                        { w: "Back", p: "/bæk/" }, { w: "Bag", p: "/bæɡ/" }, { w: "Off", p: "/ɒf/" }, { w: "Give", p: "/ɡɪv/" }
+                    ],
+                    specializedWords: [
+                        { w: "Key", p: "/kiː/" }, { w: "Goal", p: "/ɡəʊl/" }, { w: "Feature", p: "/ˈfiːtʃə/" }, { w: "Value", p: "/ˈvæljuː/" },
+                        { w: "Click", p: "/klɪk/" }, { w: "Group", p: "/ɡruːp/" }, { w: "Fill", p: "/fɪl/" }, { w: "View", p: "/vjuː/" }
+                    ],
+                    connectedSpeech: [
+                        { text: "Focus on", linking: "/ˈfəʊkəsɒn/", type: "Nối âm" },
+                        { text: "Look at", linking: "/lʊkæt/", type: "Nối âm" },
+                        { text: "Work office", linking: "/wɜːkˈɒfɪs/", type: "Nối âm" }
+                    ],
+                    steps: [{ num: 1, text: "Luyện âm /k/ và /f/ (vô thanh) vs /ɡ/ và /v/ (hữu thanh)." }]
+                },
+                1: {
+                    type: "listening",
+                    title: "BBC: Office Politics",
+                    steps: [
+                        { num: 1, text: "BBC 6 Minute English: Office Politics (BBC):", link: "https://www.bbc.co.uk/learningenglish/english/features/6-minute-english/ep-190516" },
+                        { num: 2, text: "Dự phòng (YouTube):", link: "https://www.youtube.com/watch?v=R9_mQ_Q5qN0" },
+                        { num: 3, text: "Note 3 khái niệm chính về quan hệ công sở." }
+                    ]
+                },
+                2: {
+                    type: "speaking", title: "Office Environment (4-Tier Focus)",
+                    scenarios: [
+                        {
+                            title: "🌱 Daily Context: Work Environment",
+                            questions: ["Do you like your office?", "What's the best thing about your workplace?"],
+                            samples: `**Opinion:** I really enjoy the open-plan layout of my office.
+**Reason:** It fosters better communication and makes everyone feel more accessible.
+**Example:** For instance, I can easily chat with my colleagues without having to book a meeting room.
+**Therefore:** This setup creates a very collaborative and friendly atmosphere.`
+                        },
+                        {
+                            title: "🎓 Professional Context: Management Tools",
+                            questions: ["Which tools do you use to manage tasks?", "How do they help your team?"],
+                            samples: `**Opinion:** We primarily use Jira and Confluence for our project management.
+**Reason:** These tools provide a centralized platform for tracking progress and documenting requirements.
+**Example:** For example, we create Jira tickets for every feature and use Confluence to store our SRS.
+**Therefore:** It ensures transparency and helps the team stay aligned with the project goals.`
+                        }
+                    ]
+                },
+                3: {
+                    type: "vocabulary", title: "Office & Collaboration (25 words)",
+                    core: [
+                        { w: "Equipment", p: "/ɪˈkwɪpmənt/", s: "New office equipment.", a: "Upgrading server equipment improves reliability." },
+                        { w: "Cubicle", p: "/ˈkjuːbɪkl/", s: "My cozy cubicle.", a: "Modern offices are replacing cubicles with open spaces." },
+                        { w: "Colleague", p: "/ˈkɒliːɡ/", s: "Helpful colleague.", a: "Effective communication between colleagues is vital." },
+                        { w: "Meeting", p: "/ˈmiːtɪŋ/", s: "Ten o'clock meeting.", a: "The stakeholder meeting clarified the project scope." },
+                        { w: "Schedule", p: "/ˈʃedjuːl/", s: "Busy schedule.", a: "The project schedule includes buffer time for risks." },
+                        { w: "Supplies", p: "/səˈplaɪz/", s: "Stationery supplies.", a: "Cloud computing reduces the need for physical IT supplies." },
+                        { w: "Salary", p: "/ˈsæləri/", s: "Monthly salary.", a: "BAs evaluate the ROI of a salary automation system." },
+                        { w: "Manager", p: "/ˈmænɪdʒə/", s: "Office manager.", a: "The product manager prioritizes the backlog." },
+                        { w: "Employee", p: "/ɪmˈplɔɪiː/", s: "New employee.", a: "Employee engagement is key to low turnover rates." },
+                        { w: "Kitchen", p: "/ˈkɪtʃɪn/", s: "The office kitchen.", a: "Casual talks in the office kitchen often lead to breakthroughs." }
+                    ],
+                    specialized: [
+                        { w: "Dashboard", p: "/ˈdæʃbɔːd/", s: "Check the dashboard.", a: "The executive dashboard shows real-time KPIs." },
+                        { w: "Ecosystem", p: "/ˈiːkəʊsɪstəm/", s: "Tech ecosystem.", a: "Our software is part of a larger enterprise ecosystem." },
+                        { w: "Workflow", p: "/ˈwɜːkfləʊ/", s: "Efficient workflow.", a: "Automation optimizes the approval workflow." },
+                        { w: "Interface", p: "/ˈɪntəfeɪs/", s: "User interface.", a: "The UI must be intuitive for end-users." },
+                        { w: "Platform", p: "/ˈplætfɔːrm/", s: "Cloud platform.", a: "Platform as a Service (PaaS) simplifies deployment." },
+                        { w: "Portal", p: "/ˈpɔːrtl/", s: "Employee portal.", a: "The client portal allows secure access to accounts." },
+                        { w: "Toolkit", p: "/ˈtuːlkɪt/", s: "Digital toolkit.", a: "The analyst's toolkit includes SQL and Python." },
+                        { w: "Virtual", p: "/ˈvɜːrtʃuəl/", s: "Virtual meeting.", a: "Virtual machines (VMs) allow multiple OS on one hardware." },
+                        { w: "Automation", p: "/ˌɔːtəˈmeɪʃn/", s: "Office automation.", a: "RPA tools handle repetitive data entry tasks." },
+                        { w: "Collaboration", p: "/kəˌlæbəˈreɪʃn/", s: "Team collaboration.", a: "Cross-functional collaboration is the heart of Agile." }
+                    ],
+                    fromListening: [
+                        { w: "Politics", p: "/ˈpɒlətɪks/", context: "Navigating office politics is a skill." },
+                        { w: "Promotion", p: "/prəˈməʊʃn/", context: "He deserves a promotion for his hard work." },
+                        { w: "Feedback", p: "/ˈfiːdbæk/", context: "Constructive feedback helps us grow." },
+                        { w: "Gossip", p: "/ˈɡɒsɪp/", context: "Avoid office gossip to stay professional." },
+                        { w: "Network", p: "/ˈnetwɜːk/", context: "It's important to network with other BAs." }
+                    ]
+                },
+                4: {
+                    type: "grammar",
+                    title: "Grammar Focus: Simple Present vs. Present Continuous",
+                    theory: "Sử dụng Simple Present cho các thói quen/quy tắc cố định. Sử dụng Present Continuous cho các hành động đang diễn ra hoặc dự án tạm thời.",
+                    formula: "Simple: S + V(s/es) | Continuous: S + am/is/are + V-ing",
+                    examples: [
+                        { context: "🌱 Daily", sentence: "I **usually work** at the office, but today I **am working** from home.", note: "Thói quen vs. Hành động tạm thời." },
+                        { context: "🎓 MIS", sentence: "The system **processes** data daily, and it **is currently running** a backup.", note: "Chức năng cố định vs. Trạng thái hiện tại." }
+                    ],
+                    exercise: "Viết 2 câu so sánh những gì bạn THƯỜNG LÀM và những gì bạn ĐANG LÀM ngay lúc này tại văn phòng."
+                }
+            },
+            "p1-w2-d7": {
+                summary: {
+                    topic: "Achievement Checkpoint 2 | Feedback Session",
+                    pronunciation: "Record 2-min self-intro",
+                    listening: "Free listening: YouTube Tech News",
+                    speaking: "Peer review or Self-assessment",
+                    vocab: "15-day Progress Review"
+                },
+                0: { type: "pronunciation", title: "Self-Intro Recording", steps: [{ num: 1, text: "Record intro including job and house." }] },
+                1: { type: "listening", title: "Free Tech Choice", steps: [{ num: 1, text: "Watch MKBHD or TechCrunch." }] },
+                2: { type: "speaking", title: "Reflection", scenarios: [{ title: "Review", questions: ["What was hard this week?"], samples: "Pronunciation of /eə/ /ʊə/." }] },
+                3: { type: "vocabulary", title: "Audit", core: [{ w: "Mastery", p: "/ˈmɑːstəri/", s: "Keep going!", a: "Track your milestones." }] }
+            }
+        };
+
+        // Session State
+        let currentSession = null;
+
+        function startFlashcardSession(dayId, idx, source = 'words') {
+            const curriculum = lessonCurriculum[dayId]?.[idx];
+            if (!curriculum) return;
+
+            let items = [];
+            if (source === 'words') {
+                // Support both pronunciation (dailyWords) and vocabulary (core) task formats
+                const words1 = curriculum.dailyWords || curriculum.core || [];
+                const words2 = curriculum.specializedWords || curriculum.specialized || [];
+                const words3 = curriculum.fromListening || [];
+                items = [...words1, ...words2, ...words3];
+            } else {
+                items = curriculum.connectedSpeech || [];
+            }
+
+            if (items.length === 0) {
+                alert("Không có nội dung cho phần này!");
+                return;
+            }
+
+            currentSession = {
+                dayId,
+                idx,
+                items: items,
+                items: items,
+                currentIndex: 0,
+                isFlipped: false,
+                sessionType: source,
+                phase: 'flashcard'
+            };
+
+            refreshModalContent(dayId, idx);
+        }
+
+        function nextFlashcard() {
+            if (!currentSession) return;
+            if (currentSession.currentIndex < currentSession.items.length - 1) {
+                currentSession.currentIndex++;
+                currentSession.isFlipped = false;
+                audioUrl = null;
+                renderFlashcardUI();
+            } else {
+                finishFlashcardSession();
+            }
+        }
+
+        function prevFlashcard() {
+            if (!currentSession || currentSession.currentIndex === 0) return;
+            currentSession.currentIndex--;
+            currentSession.isFlipped = false;
+            audioUrl = null;
+            renderFlashcardUI();
+        }
+
+        function flipFlashcard() {
+            if (!currentSession) return;
+            currentSession.isFlipped = !currentSession.isFlipped;
+            const card = document.querySelector('.flashcard');
+            if (card) {
+                card.classList.toggle('flipped', currentSession.isFlipped);
+            }
+        }
+
+        function finishFlashcardSession() {
+            const dayId = document.getElementById('session-day-id').value;
+            const idx = parseInt(document.getElementById('session-task-idx').value);
+            const curriculum = lessonCurriculum[dayId]?.[idx];
+
+            if (currentSession && currentSession.sessionType === 'words' && curriculum) {
+                // Chaining for Pronunciation: Words -> Speech
+                if (curriculum.type === 'pronunciation' && curriculum.connectedSpeech && curriculum.connectedSpeech.length > 0) {
+                    currentSession = null;
+                    startFlashcardSession(dayId, idx, 'speech');
+                    return;
+                }
+
+                // Chaining for Vocabulary: Flashcard -> Spelling -> Mastery
+                if (curriculum.type === 'vocabulary') {
+                    if (!currentSession.phase || currentSession.phase === 'flashcard') {
+                        currentSession.phase = 'spelling';
+                        renderFlashcardUI();
+                        return;
+                    }
+                    if (currentSession.phase === 'spelling') {
+                        currentSession.phase = 'mastery';
+                        renderFlashcardUI();
+                        return;
+                    }
+                }
+            }
+
+            currentSession = null;
+            refreshModalContent(dayId, idx);
+        }
+
+        function refreshModalContent(dayId, idx) {
+            const curriculum = lessonCurriculum[dayId]?.[idx] || { type: 'default', steps: [] };
+            const detail = userData[dayId].details[idx];
+            const contentArea = document.getElementById('modal-dynamic-content');
+            if (contentArea) {
+                contentArea.innerHTML = renderCurriculumContent(curriculum, detail, dayId, idx);
+                if (currentSession) renderFlashcardUI();
+            }
+        }
+
+        function renderFlashcardUI() {
+            if (!currentSession) return;
+            const item = currentSession.items[currentSession.currentIndex];
+            const progress = ((currentSession.currentIndex + 1) / currentSession.items.length) * 100;
+
+            const container = document.getElementById('session-flashcard-container');
+            if (!container) return;
+
+            // --- PHASE: SPELLING CHALLENGE ---
+            if (currentSession.phase === 'spelling') {
+                container.innerHTML = `
+                    <div style="background:var(--card-bg); border-radius:12px; padding:2rem; border:1px solid var(--glass-border); text-align:center; height:100%; display:flex; flex-direction:column; justify-content:center">
+                        <h3 style="color:var(--accent); margin-bottom:1.5rem">✍️ Spelling Challenge</h3>
+                        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:2rem">Nhìn phiên âm, điền từ vựng đúng để qua màn!</p>
+                        
+                        <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:15px; overflow-y:auto; max-height:400px; padding:5px">
+                            ${currentSession.items.slice(0, 8).map((item, i) => `
+                                <div style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:8px">
+                                    <span class="ipa-text" style="font-size:0.9rem;">${item.p}</span>
+                                    <input type="text" placeholder="Go..." style="width:100%; background:rgba(0,0,0,0.2); border:1px solid var(--glass-border); color:white; padding:8px; border-radius:4px; text-align:center; outline:none" onkeyup="if(this.value.toLowerCase() === '${item.w.toLowerCase()}') this.style.borderColor = '#10b981'">
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <div style="margin-top:2rem">
+                             <button class="session-btn next" style="width:100%" onclick="finishFlashcardSession()">Hoàn thành & Tiếp tục 🧠</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // --- PHASE: SENTENCE MASTERY ---
+            if (currentSession.phase === 'mastery') {
+                const detail = userData[currentSession.dayId].details[currentSession.idx];
+                container.innerHTML = `
+                    <div style="background:var(--card-bg); border-radius:12px; padding:2rem; border:1px solid var(--glass-border); height:100%; display:flex; flex-direction:column;">
+                        <h3 style="color:#10b981; margin-bottom:1rem; text-align:center">🧠 Sentence Mastery (Context)</h3>
+                        <p style="color:var(--text-muted); font-size:0.85rem; text-align:center; margin-bottom:1.5rem">Chọn từ và đặt câu (Simple & Academic) để hoàn thành bài học.</p>
+                        
+                        <div style="flex:1; overflow-y:auto; padding-right:5px">
+                            <div style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:6px; justify-content:center">
+                                ${currentSession.items.map(item => `
+                                    <span class="word-pill" style="font-size:0.8rem; padding:4px 10px" onclick="insertWord('${item.w}')">${item.w}</span>
+                                `).join('')}
+                            </div>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr; gap:15px; margin-bottom:1.5rem">
+                                <div>
+                                    <div style="font-size:0.75rem; color:#10b981; margin-bottom:5px">🌱 Câu đơn giản (Daily):</div>
+                                    <div class="sentence-editor" id="vocab-editor-simple" contenteditable="true" placeholder="..." style="min-height:60px; font-size:0.85rem; padding:10px"></div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem; color:var(--accent); margin-bottom:5px">🎓 Câu học thuật (Academic):</div>
+                                    <div class="sentence-editor" id="vocab-editor" contenteditable="true" placeholder="..." style="min-height:60px; font-size:0.85rem; padding:10px">${detail.editorContent || ''}</div>
+                                </div>
+                            </div>
+
+                             <!-- Grammar Feedback Box -->
+                            <div id="grammar-box" class="grammar-feedback">
+                                <span class="feedback-title" id="grammar-title">AI Feedback</span>
+                                <div class="feedback-reason" id="grammar-reason"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:1rem; display:flex; gap:10px">
+                             <button class="studio-btn play" style="flex:1; justify-content:center" onclick="checkSentenceGrammar('${currentSession.dayId}', ${currentSession.idx})">🔍 AI Check</button>
+                             <button class="session-btn next" style="flex:1" onclick="finishFlashcardSession()">Tổng kết bài học 🎉</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const isSpeech = currentSession.sessionType === 'speech';
+
+            container.innerHTML = `
+                <div class="session-progress">
+                    <div class="session-progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; width:100%; align-items:center; margin-top:5px">
+                    <p style="font-size: 0.75rem; color: var(--text-muted);">${isSpeech ? '⚡ Connected Speech Mode' : '🎴 Vocabulary Mode'}</p>
+                    <div style="display:flex; align-items:center; gap:10px">
+                        <button onclick="finishFlashcardSession()" style="background:none; border:none; color:var(--primary-light); font-size:0.75rem; cursor:pointer; text-decoration:underline">Xem toàn bộ bài</button>
+                        <p style="font-size: 0.8rem; color: var(--text-muted);">${currentSession.currentIndex + 1} / ${currentSession.items.length}</p>
+                    </div>
+                </div>
+                
+                <div class="flashcard-wrapper" onclick="flipFlashcard()">
+                    <div class="flashcard ${currentSession.isFlipped ? 'flipped' : ''}">
+                        <!-- FRONT -->
+                        <div class="flashcard-face flashcard-front">
+                            <div style="font-size: 0.7rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:1rem; opacity:0.6">${isSpeech ? item.type : 'Vocabulary'}</div>
+                            <h3 style="font-size: ${isSpeech ? '2.2rem' : '3rem'}">${isSpeech ? item.text : item.w}</h3>
+                            <p style="margin-top:1rem; font-size:0.85rem">Nhấp hoặc nhấn Space để lật</p>
+                        </div>
+                        
+                        <!-- BACK -->
+                        <div class="flashcard-face flashcard-back">
+                            ${isSpeech ? `
+                                <div class="speech-ipa" style="width:100%; margin-bottom:1.5rem">${item.linking}</div>
+                                <div class="speech-comparison" style="width:100%; margin-bottom:1rem">
+                                    <div class="compare-box">
+                                        <span class="compare-label">🤖 Robot</span>
+                                        <button class="compare-btn" onclick="event.stopPropagation(); speakPhrase('${item.text}', true)"><span>▶</span> Nghe</button>
+                                    </div>
+                                    <div class="compare-box">
+                                        <span class="compare-label">⚡ Native</span>
+                                        <button class="compare-btn" style="background:var(--primary); border:none" onclick="event.stopPropagation(); speakPhrase('${item.text}', false)"><span>▶</span> Nghe</button>
+                                    </div>
+                                </div>
+                                <div style="font-size:0.8rem; color:var(--text-muted); line-height:1.4">💡 ${item.note}</div>
+                            ` : `
+                                <div style="width:100%; text-align:left; overflow-y:auto; max-height:100%; padding-right:5px">
+                                    <div class="speech-ipa" style="margin-bottom:1.2rem; display:inline-block; width:auto; padding:5px 15px">${item.p}</div>
+                                    
+                                    <div style="margin-bottom:1.2rem">
+                                        <label style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px">🔑 Định nghĩa</label>
+                                        <p style="font-size:1.1rem; color:var(--accent); font-weight:700;">${item.m || item.meaning || "Nhấp để xem nghĩa"}</p>
+                                    </div>
+
+                                    <div style="margin-bottom:1.2rem">
+                                        <label style="font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px">📝 Ví dụ cơ bản</label>
+                                        <p style="font-size:0.85rem; color:var(--text-main); line-height:1.5; font-style:italic; opacity:0.9">"${item.e || item.s || item.context || "Chưa có ví dụ."}"</p>
+                                    </div>
+
+                                    ${(item.adv || item.a) ? `
+                                        <div style="margin-bottom:1.5rem; background:rgba(99, 102, 241, 0.08); padding:12px; border-radius:10px; border-left:4px solid var(--primary)">
+                                            <label style="font-size:0.65rem; color:var(--primary-light); text-transform:uppercase; letter-spacing:1px; display:block; margin-bottom:4px">🏆 Cấp độ 7.0+ (Advanced)</label>
+                                            <p style="font-size:0.85rem; color:var(--text-main); line-height:1.5">${item.adv || item.a}</p>
+                                        </div>
+                                    ` : ''}
+
+                                    <div style="display:flex; justify-content:center; margin-top:0.5rem">
+                                        <button class="studio-btn play" style="padding: 8px 20px" onclick="event.stopPropagation(); speakPhrase('${item.w}')">
+                                            <span>🔊</span> Nghe phát âm
+                                        </button>
+                                    </div>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="recorder-zone" style="margin-top: 10px; padding: 1rem; border-style: solid; background: rgba(255,255,255,0.03);">
+                    <p style="font-size: 0.8rem; margin-bottom: 8px;">🎙️ Luyện đọc từ này</p>
+                    <div class="recorder-btns">
+                        <button class="record-btn" id="fc-record-btn" onclick="event.stopPropagation(); toggleRecording('flashcard')">●</button>
+                        <button class="play-btn hidden" id="fc-playback-btn" onclick="event.stopPropagation(); playRecording()">▶ Nghe lại</button>
+                    </div>
+                    <div id="fc-status" style="margin-top: 8px; font-size: 0.75rem; color: var(--text-muted);">Sẵn sàng ghi âm</div>
+                </div>
+
+                <div class="session-controls">
+                    <button class="session-btn" onclick="prevFlashcard()" ${currentSession.currentIndex === 0 ? 'disabled style="opacity:0.3"' : ''}>Trước</button>
+                    <button class="session-btn next" onclick="nextFlashcard()">
+                        ${(() => {
+                    if (currentSession.currentIndex < currentSession.items.length - 1) return 'Tiếp theo';
+                    const curriculum = lessonCurriculum[currentSession.dayId]?.[currentSession.idx];
+
+                    // Pronunciation Chain
+                    if (currentSession.sessionType === 'words' && curriculum.type === 'pronunciation' && curriculum.connectedSpeech && curriculum.connectedSpeech.length > 0) {
+                        return 'Học Tiếp: Nối âm ⚡';
+                    }
+
+                    // Vocabulary Chain
+                    if (curriculum.type === 'vocabulary') {
+                        if (currentSession.phase === 'flashcard') return 'Tiếp: Spelling Check ✍️';
+                        if (currentSession.phase === 'spelling') return 'Tiếp: Sentence Mastery 🧠';
+                    }
+
+                    return 'Hoàn thành';
+                })()}
+                    </button>
+                </div>
+            `;
+        }
+
+        const phase1Requirements = {
+            0: { time: "30 phút", output: "Phát âm chuẩn IPA, quay/ghi âm shadowing" },
+            1: { time: "40 phút", output: "Note 5 từ mới, tóm tắt được ý chính audio" },
+            2: { time: "30 phút", output: "File thu âm 1-2 phút theo khung template" },
+            3: { time: "30-40 phút", output: "10 từ Core + 5 từ MIS (Anki/Notion)" },
+            4: { time: "20 phút", output: "Hiểu công thức, viết được 3-5 câu ứng dụng" }
+        };
+
+        function openTaskForm(dayId, idx, taskName) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+
+            if (!userData[dayId]) userData[dayId] = { tasks: [], notes: [], details: {} };
+            if (!userData[dayId].details) userData[dayId].details = {};
+
+            const stageNum = parseInt(dayId.split('-')[0].replace('p', ''));
+            let planReq = { time: "60 phút", output: "Hoàn thành các đầu việc trong giáo án" };
+            if (stageNum === 1) planReq = phase1Requirements[idx] || planReq;
+
+            if (!userData[dayId].details[idx]) {
+                userData[dayId].details[idx] = { note: '', sessions: 0 };
+            }
+
+            const detail = userData[dayId].details[idx];
+            const curriculum = lessonCurriculum[dayId]?.[idx] || { type: 'default', steps: [] };
+
+            // FLASHCARD-FIRST FLOW: Auto-start session for Pronunciation & Vocab
+            if (!currentSession && (curriculum.type === 'pronunciation' || curriculum.type === 'vocabulary')) {
+                let items = [];
+                if (curriculum.type === 'pronunciation') {
+                    const words1 = curriculum.dailyWords || [];
+                    const words2 = curriculum.specializedWords || [];
+                    items = [...words1, ...words2];
+                } else if (curriculum.type === 'vocabulary') {
+                    const words1 = curriculum.core || [];
+                    const words2 = curriculum.specialized || [];
+                    const words3 = curriculum.fromListening || [];
+                    items = [...words1, ...words2, ...words3];
+                }
+
+                if (items.length > 0) {
+                    currentSession = {
+                        dayId,
+                        idx,
+                        items: items,
+                        currentIndex: 0,
+                        isFlipped: false,
+                        sessionType: 'words',
+                        phase: 'flashcard'
+                    };
+                }
+            }
+
+            modal.innerHTML = `
+                <div class="modal-content" style="max-height: 90vh; overflow-y: auto;">
+                    <span class="close-x" onclick="closeModal()">×</span>
+                    <input type="hidden" id="session-day-id" value="${dayId}">
+                    <input type="hidden" id="session-task-idx" value="${idx}">
+                    
+                    <div class="modal-header">
+                        <h2>${curriculum.title || taskName}</h2>
+                        <div style="font-size: 0.85rem; color: var(--text-muted);">📊 Tổng số lần học: <span style="color: var(--accent); font-weight: 800;">${detail.sessions || 0}</span></div>
+                    </div>
+
+                    <div id="modal-dynamic-content">
+                        ${renderCurriculumContent(curriculum, detail, dayId, idx)}
+                    </div>
+
+                    <div class="form-group" style="margin-top:2rem">
+                        <label>Ghi chú cho phiên học này</label>
+                        <textarea id="modal-note" placeholder="Nhập kết quả, từ vựng mới hoặc khó khăn của bạn...">${detail.note || ''}</textarea>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="btn btn-close" onclick="closeModal()">Đóng</button>
+                        <button class="btn btn-primary" onclick="finishTask('${dayId}', ${idx})">Lưu & Hoàn thành</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // AUTO-RENDER: If we have an active session, render it immediately
+            if (currentSession) {
+                renderFlashcardUI();
+            }
+        }
+
+
+        function renderCurriculumContent(c, detail, dayId, idx) {
+            if (c.type === 'pronunciation') {
+                if (currentSession) {
+                    return `<div id="session-flashcard-container" class="session-container"></div>`;
+                }
+
+                return `
+                    <!-- 1. Learning Steps & Warm-up -->
+                    <div class="steps-flow" style="margin-bottom: 2rem;">
+                        ${c.steps.map(s => `
+                            <div class="flow-item">
+                                <div class="flow-dot"></div>
+                                <div class="flow-info">
+                                    <div class="flow-text">${s.text}</div>
+                                    ${s.link ? `<a href="${s.link}" target="_blank" class="mini-link">Xem Video / Tài liệu hướng dẫn →</a>` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- 2. Shadowing Studio (Focused Practice) -->
+                    <div class="shadowing-podium" style="margin-bottom: 2rem;">
+                        <h4>🎙️ Shadowing Studio</h4>
+                        <div class="studio-controls">
+                            <button class="studio-btn record" id="pron-rec" onclick="toggleRecording('pronunciation')">
+                                <span>●</span> Bắt đầu Shadowing
+                            </button>
+                            <button class="studio-btn play hidden" id="pron-playback" onclick="playRecording()">
+                                <span>▶</span> Nghe lại & So sánh
+                            </button>
+                        </div>
+                        <div id="listen-status" class="studio-status">Sẵn sàng luyện Shadowing các cụm trong bài</div>
+                    </div>
+
+                    <hr style="border:none; border-top:1px solid var(--glass-border); margin: 2rem 0; opacity: 0.3;">
+
+                    <!-- 3. Vocabulary & Mastery Lab -->
+                    <div class="vocab-lab">
+                        <h4 style="color:var(--text-muted); font-size:0.8rem; text-transform:uppercase; margin-bottom:1.5rem; text-align:center; letter-spacing:1px">🛠️ Mastery Lab (Vocabulary & Linking)</h4>
+                        
+                        <div style="display:flex; gap:12px; justify-content:center; margin-bottom: 2rem; flex-wrap:wrap">
+                            <button class="btn btn-primary" style="padding: 0.8rem 1.5rem;" onclick="startFlashcardSession('${dayId}', ${idx}, 'words')">🎴 Học Từ vựng (Flashcards)</button>
+                            <button class="btn" style="padding: 0.8rem 1.5rem; background:rgba(16, 185, 129, 0.1); border:1px solid #10b981; color:#10b981" onclick="startFlashcardSession('${dayId}', ${idx}, 'speech')">⚡ Học Nối âm (Flashcards)</button>
+                        </div>
+
+                        <!-- 1. Vocabulary Grid -->
+                        <div style="margin-bottom: 2.5rem;">
+                            <div style="display:flex; align-items:center; gap:10px; margin-bottom:1rem">
+                                <span style="background:var(--primary); width:3px; height:15px; border-radius:2px;"></span>
+                                <label style="font-weight:700; color:white; font-size:0.9rem">1. Flash Vocab List</label>
+                            </div>
+                            
+                            <div class="vocab-grid">
+                                ${c.dailyWords.map(w => `
+                                    <div class="vocab-card daily" onclick="speakPhrase('${w.w}')">
+                                        <div class="vocab-category-tag">Daily</div>
+                                        <div class="vocab-card-word">${w.w}</div>
+                                        <div class="vocab-card-ipa">${w.p}</div>
+                                        <div class="vocab-card-play"><span>▶</span></div>
+                                    </div>
+                                `).join('')}
+                                ${c.specializedWords.map(w => `
+                                    <div class="vocab-card mis" onclick="speakPhrase('${w.w}')">
+                                        <div class="vocab-category-tag">MIS</div>
+                                        <div class="vocab-card-word">${w.w}</div>
+                                        <div class="vocab-card-ipa">${w.p}</div>
+                                        <div class="vocab-card-play"><span>▶</span></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- 2. Connected Speech -->
+                            <h4 style="color:var(--accent); margin-bottom:1rem; display:flex; align-items:center; gap:8px">
+                                <span style="background:var(--primary); width:4px; height:18px; border-radius:2px;"></span>
+                                2. Connected Speech (Nối & Nuốt âm)
+                            </h4>
+                            <div class="speech-grid">
+                                ${(c.connectedSpeech || [
+                        { text: "Wake up", linking: "/weɪ kʌp/", type: "Nối âm", note: "Phụ âm /k/ nối với nguyên âm /ʌ/" },
+                        { text: "Check it out", linking: "/tʃekɪtaʊt/", type: "Nối âm", note: "Nối liên hoàn các âm cuối" },
+                        { text: "Next day", linking: "/neks deɪ/", type: "Nuốt âm", note: "Âm /t/ bị nuốt vì đứng giữa 2 phụ âm" }
+                    ]).map(item => `
+                                    <div class="speech-card ${item.type === 'Nuốt âm' ? 'elision' : ''}">
+                                        <div class="speech-header">
+                                            <div class="speech-title">${item.text}</div>
+                                            <div class="speech-type">${item.type}</div>
+                                        </div>
+                                        <div class="speech-comparison">
+                                            <div class="compare-box">
+                                                <span class="compare-label">🤖 Robot</span>
+                                                <button class="compare-btn" onclick="speakPhrase('${item.text}', true)"><span>▶</span> Nghe</button>
+                                            </div>
+                                            <div style="color:var(--glass-border); font-size:1.2rem">VS</div>
+                                            <div class="compare-box">
+                                                <span class="compare-label">⚡ Native</span>
+                                                <button class="compare-btn" style="background:var(--primary); border:none" onclick="speakPhrase('${item.text}', false)"><span>▶</span> Nghe</button>
+                                            </div>
+                                        </div>
+                                        <div class="speech-ipa">${item.linking}</div>
+                                        <div class="speech-note"><span><strong>💡</strong> ${item.note}</span></div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (c.type === 'listening') {
+                return `
+                    <div class="recorder-zone">
+                        <p>🎙️ Listen & Record your Shadowing</p>
+                        <div class="recorder-btns">
+                            <button class="record-btn" id="listen-rec" onclick="toggleRecording('listening')">●</button>
+                            <button class="play-btn hidden" id="listen-playback" onclick="playRecording()">▶ Nghe lại (Playback)</button>
+                        </div>
+                        <div id="listen-status" style="margin-top:10px; font-size:0.8rem">Sẵn sàng ghi âm</div>
+                        <div class="accuracy-badge accuracy-high hidden" id="listen-acc">Độ chính xác: 85%</div>
+                    </div>
+                    ${renderSteps(c.steps)}
+                `;
+            }
+
+            if (c.type === 'speaking') {
+                return `
+                    <div class="lesson-card">
+                        ${c.scenarios.map(s => `
+                            <div style="margin-bottom:1.5rem">
+                                <h4 style="color:var(--accent); margin-bottom:0.5rem">📍 ${s.title}</h4>
+                                <div style="background:rgba(255,255,255,0.03); padding:1rem; border-radius:0.5rem; margin-bottom:0.8rem">
+                                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem">Câu hỏi gợi ý:</p>
+                                    <ul style="font-size:0.9rem; padding-left:1.5rem">
+                                        ${s.questions.map(q => `<li style="margin-bottom:4px">${q}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                
+                                <!-- Structured Framework -->
+                                <div style="background:rgba(99, 102, 241, 0.05); padding:1rem; border-radius:0.5rem; border-left:4px solid var(--primary); margin-bottom:1rem">
+                                    <p style="font-size:0.8rem; color:var(--primary); font-weight:bold; margin-bottom:0.5rem">🛠️ Speaking Framework (Quy tắc Phase 1):</p>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; font-size:0.85rem">
+                                        <div style="color:var(--text-muted)">1. Trực diện: <span style="color:var(--text-main)">I think that...</span></div>
+                                        <div style="color:var(--text-muted)">2. Lý do: <span style="color:var(--text-main)">One reason is...</span></div>
+                                        <div style="color:var(--text-muted)">3. Ví dụ: <span style="color:var(--text-main)">For example...</span></div>
+                                        <div style="color:var(--text-muted)">4. Kết quả: <span style="color:var(--text-main)">Therefore...</span></div>
+                                    </div>
+                                </div>
+
+                                <div style="border-left:2px solid #10b981; padding-left:1rem">
+                                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.5rem">Nội dung gợi ý (Sample Phrases):</p>
+                                    <div style="font-size:0.85rem; line-height:1.6; color:var(--text-main)">
+                                        ${s.samples || 'Hãy tự tin trình bày theo cách của bạn!'}
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="recorder-zone">
+                        <p>🎙️ Thu âm bài nói (ÉP THEO KHUNG TRÊN)</p>
+                        <div class="recorder-btns">
+                            <button class="record-btn" onclick="toggleRecording('speaking')">●</button>
+                            <button class="play-btn hidden" id="listen-playback" onclick="playRecording()">▶ Nghe & Tự chấm điểm</button>
+                        </div>
+                        <div id="listen-status" style="margin-top:10px; font-size:0.8rem">Sẵn sàng thu âm...</div>
+                    </div>
+                `;
+            }
+
+            if (c.type === 'vocabulary') {
+                if (currentSession) {
+                    return `<div id="session-flashcard-container" class="session-container"></div>`;
+                }
+
+                const savedSentences = detail.savedSentences || [];
+                return `
+                    <div class="vocab-lab">
+                        <div style="display:flex; justify-content:center; margin-bottom:1.5rem">
+                            <button class="btn btn-primary" style="padding: 0.8rem 2rem; display:flex; align-items:center; gap:10px" onclick="startFlashcardSession('${dayId}', ${idx}, 'words')">
+                                <span style="font-size:1.2rem">🎴</span> Bắt đầu Học Flashcard (Từng từ)
+                            </button>
+                        </div>
+
+                        <!-- Section 1: Explore -->
+                        <div class="lesson-card" style="margin-bottom:1.5rem; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.05)">
+                            <h4 style="color:var(--text-muted); margin-bottom:1rem; font-size:0.9rem">1. Vocab Explore (15' Core + 15' MIS)</h4>
+                            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:10px">Mỗi từ bao gồm: Phát âm + Câu đơn giản (🌱) + Câu học thuật (🎓)</p>
+                            
+                            <div style="display:grid; grid-template-columns: 1fr; gap:12px; margin-bottom:2rem">
+                                <div style="color:var(--accent); font-weight:bold; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px">OXFORD/CAMBRIDGE CORE</div>
+                                ${(c.core || []).map(i => `
+                                    <div class="vocab-item" onclick="speakPhrase('${i.w}')" style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; display:flex; flex-direction:column; gap:5px; cursor:pointer; border:1px solid rgba(255,255,255,0.05)">
+                                        <div style="display:flex; justify-content:space-between; align-items:center">
+                                            <strong style="color:var(--text-main); font-size:1rem">${i.w}</strong> 
+                                            <span class="ipa-text" style="font-size:0.8rem; color:var(--accent)">${i.p}</span>
+                                        </div>
+                                        <div style="font-size:0.85rem; color:var(--text-muted)">🌱 ${i.s || '...'}</div>
+                                        <div style="font-size:0.85rem; color:var(--primary); font-style:italic">🎓 ${i.a || '...'}</div>
+                                    </div>
+                                `).join('')}
+
+                                <div style="color:var(--accent); font-weight:bold; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-top:15px">MIS / BABOK SPECIALIZED</div>
+                                ${(c.specialized || []).map(i => `
+                                    <div class="vocab-item" onclick="speakPhrase('${i.w}')" style="background:rgba(255,255,255,0.03); padding:12px; border-radius:8px; display:flex; flex-direction:column; gap:5px; cursor:pointer; border:1px solid rgba(255,255,255,0.05)">
+                                        <div style="display:flex; justify-content:space-between; align-items:center">
+                                            <strong style="color:var(--text-main); font-size:1rem">${i.w}</strong> 
+                                            <span class="ipa-text" style="font-size:0.8rem; color:var(--accent)">${i.p}</span>
+                                        </div>
+                                        <div style="font-size:0.85rem; color:var(--text-muted)">🌱 ${i.s || '...'}</div>
+                                        <div style="font-size:0.85rem; color:var(--primary); font-style:italic">🎓 ${i.a || '...'}</div>
+                                    </div>
+                                `).join('')}
+
+                                ${(c.fromListening && c.fromListening.length > 0) ? `
+                                <div style="color:var(--accent); font-weight:bold; font-size:0.8rem; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-top:15px">🎧 FROM LISTENING ACTIVITY</div>
+                                ${c.fromListening.map(i => `
+                                    <div class="vocab-item" onclick="speakPhrase('${i.w}')" style="background:rgba(16, 185, 129, 0.05); padding:12px; border-radius:8px; display:flex; flex-direction:column; gap:5px; cursor:pointer; border:1px solid rgba(16, 185, 129, 0.2)">
+                                        <div style="display:flex; justify-content:space-between; align-items:center">
+                                            <strong style="color:var(--text-main); font-size:1rem">${i.w}</strong> 
+                                            <span class="ipa-text" style="font-size:0.8rem; color:#10b981">${i.p}</span>
+                                        </div>
+                                        <div style="font-size:0.85rem; color:var(--text-muted)">📝 ${i.context || '...'}</div>
+                                    </div>
+                                `).join('')}
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Section 2: Spelling Practice -->
+                        <div class="lesson-card" style="margin-bottom:1.5rem">
+                            <h4 style="color:var(--accent); margin-bottom:0.5rem">2. Spelling Challenge</h4>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem">Nhìn phiên âm, đoán và điền từ vựng đúng:</p>
+                            <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:10px">
+                                ${[...(c.core || []), ...(c.specialized || [])].slice(0, 6).map((item, i) => `
+                                    <div style="background:rgba(255,255,255,0.03); padding:8px; border-radius:6px; display:flex; align-items:center; gap:8px">
+                                        <span class="ipa-text" style="font-size:0.8rem; min-width:80px">${item.p}</span>
+                                        <input type="text" placeholder="..." style="width:100%; background:transparent; border:none; border-bottom:1px solid var(--glass-border); color:var(--text-main); font-size:0.85rem; outline:none">
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Section 3: Sentence Mastery -->
+                        <div class="lesson-card" style="margin-bottom:1.5rem">
+                            <h4 style="color:var(--accent); margin-bottom:0.5rem">3. Sentence Mastery (Ép thực hành Context)</h4>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem">Mỗi từ vựng phải đặt đủ 2 câu theo yêu cầu Reset nền tảng:</p>
+                            
+                            <div style="margin-bottom:1rem; display:flex; flex-wrap:wrap; gap:8px">
+                                ${[...(c.core || []), ...(c.specialized || [])].map(item => `
+                                    <span class="word-pill" onclick="insertWord('${item.w}')">${item.w}</span>
+                                `).join('')}
+                            </div>
+                            
+                            <div class="toolbar">
+                                <button class="tool-btn" onclick="formatDoc('bold')"><b>B</b></button>
+                                <button class="tool-btn" onclick="formatDoc('foreColor', '#10b981')">Green</button>
+                                <button class="tool-btn" style="background:var(--primary); color:white; border:none" onclick="checkSentenceGrammar('${dayId}', ${idx})">🔍 Kiểm tra ngữ pháp (AI Check)</button>
+                            </div>
+
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px">
+                                <div>
+                                    <div style="font-size:0.75rem; color:#10b981; margin-bottom:5px">🌱 Câu đơn giản (Daily Context):</div>
+                                    <div class="sentence-editor" id="vocab-editor-simple" contenteditable="true" placeholder="Ví dụ: I have a plan." style="min-height:80px; font-size:0.85rem"></div>
+                                </div>
+                                <div>
+                                    <div style="font-size:0.75rem; color:var(--accent); margin-bottom:5px">🎓 Câu học thuật (Academic/Work Context):</div>
+                                    <div class="sentence-editor" id="vocab-editor" contenteditable="true" placeholder="Ví dụ: The strategic plan outlines our goals." style="min-height:80px; font-size:0.85rem">${detail.editorContent || ''}</div>
+                                </div>
+                            </div>
+                            
+                            <!-- Grammar Feedback Box -->
+                            <div id="grammar-box" class="grammar-feedback">
+                                <span class="feedback-title" id="grammar-title">Kết quả phân tích từ AI</span>
+                                <div class="feedback-reason" id="grammar-reason"></div>
+                            </div>
+                        </div>
+
+                        <!-- Section 4: Sentence Collection -->
+                        <div class="lesson-card" style="margin-bottom:1.5rem; border: 1px solid rgba(16, 185, 129, 0.3)">
+                            <h4 style="color:#10b981; margin-bottom:0.5rem">4. My Sentence Bank (Chuẩn IELTS)</h4>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem">Những câu bạn đã viết đúng và lưu trữ:</p>
+                            <div id="sentence-bank" style="font-size:0.9rem; line-height:1.6">
+                                ${savedSentences.length > 0 ? savedSentences.map((s, i) => `
+                                    <div style="margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border-radius:4px; border-left:3px solid #10b981; display:flex; justify-content:space-between; align-items:center;">
+                                        <span>✨ ${s}</span>
+                                        <button onclick="removeFromSentenceBank('${dayId}', ${idx}, ${i})" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px 8px; font-size:1rem; line-height:1">×</button>
+                                    </div>
+                                `).join('') : '<span style="color:var(--text-muted)">Chưa có câu nào được lưu. Hãy kiểm tra & lưu câu ở mục 3!</span>'}
+                            </div>
+                        </div>
+
+                        <!-- Recording Section -->
+                        <div class="recorder-zone">
+                            <p>🎙️ Thu âm đọc danh sách từ & các câu đã đặt</p>
+                            <div class="recorder-btns">
+                                <button class="record-btn" onclick="toggleRecording('vocabulary')">●</button>
+                                <button class="play-btn hidden" id="listen-playback" onclick="playRecording()">▶ Nghe lại bài học</button>
+                            </div>
+                            <div id="listen-status" style="margin-top:10px; font-size:0.8rem">Sẵn sàng thu âm...</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (c.type === 'grammar') {
+                return `
+                    <div class="lesson-card" style="border-left: 4px solid #f59e0b">
+                        <!-- Theory Block -->
+                        <div style="background:rgba(245,158,11,0.08); border-radius:10px; padding:16px; margin-bottom:1.5rem">
+                            <div style="font-size:0.75rem; text-transform:uppercase; color:#f59e0b; font-weight:800; margin-bottom:8px">📚 Lý thuyết</div>
+                            <div style="font-size:0.9rem; color:var(--text-main); line-height:1.6">${c.theory || ''}</div>
+                        </div>
+
+                        <!-- Formula Block -->
+                        <div style="background:rgba(99,102,241,0.1); border-radius:10px; padding:14px; margin-bottom:1.5rem; text-align:center">
+                            <div style="font-size:0.75rem; text-transform:uppercase; color:var(--accent); font-weight:800; margin-bottom:6px">📌 Công thức</div>
+                            <div style="font-size:1.2rem; font-weight:800; color:var(--text-main); font-family:monospace; letter-spacing:1px">${c.formula || ''}</div>
+                        </div>
+
+                        <!-- Examples Block -->
+                        <div style="margin-bottom:1.5rem">
+                            <div style="font-size:0.75rem; text-transform:uppercase; color:var(--accent); font-weight:800; margin-bottom:10px">💡 Ví dụ thực tế (Dual-Context)</div>
+                            <div style="display:grid; gap:10px">
+                            ${(c.examples || []).map(ex => `
+                                <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:14px; border-left:4px solid ${ex.context.includes('MIS') || ex.context.includes('Academic') ? '#6366f1' : '#10b981'}">
+                                    <div style="font-size:0.75rem; color:${ex.context.includes('MIS') || ex.context.includes('Academic') ? '#6366f1' : '#10b981'}; font-weight:700; margin-bottom:6px">${ex.context}</div>
+                                    <div style="font-size:0.95rem; color:var(--text-main); margin-bottom:4px" onclick="speakPhrase('${ex.sentence.replace(/\*\*/g, '').replace(/'/g, "\\'")}')">▶ ${ex.sentence.replace(/\*\*(.+?)\*\*/g, '<strong style="color:#f59e0b">$1</strong>')}</div>
+                                    <div style="font-size:0.78rem; color:var(--text-muted); font-style:italic">💡 ${ex.note || ''}</div>
+                                </div>
+                            `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Exercise Block -->
+                        <div style="background:rgba(16,185,129,0.05); border-radius:10px; padding:14px; margin-bottom:1.5rem; border:1px dashed rgba(16,185,129,0.3)">
+                            <div style="font-size:0.75rem; text-transform:uppercase; color:#10b981; font-weight:800; margin-bottom:8px">✏️ Thực hành viết</div>
+                            <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:10px">${c.exercise || 'Viết 2-3 câu sử dụng cấu trúc ngữ pháp hôm nay.'}</div>
+                            <div contenteditable="true" style="min-height:70px; background:rgba(255,255,255,0.03); border-radius:6px; padding:10px; border:1px solid rgba(255,255,255,0.1); font-size:0.9rem; color:var(--text-main); outline:none" placeholder="Viết câu vào đây..."></div>
+                        </div>
+
+                        <!-- Speaking Practice -->
+                        <div class="recorder-zone">
+                            <p>🎙️ Nói to câu vía dụ vào mic để luyện phản xạ</p>
+                            <div class="recorder-btns">
+                                <button class="record-btn" onclick="toggleRecording('speaking')">●</button>
+                                <button class="play-btn hidden" id="listen-playback" onclick="playRecording()">▶ Nghe lại</button>
+                            </div>
+                            <div id="listen-status" style="margin-top:10px; font-size:0.8rem">Sẵn sàng...</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return renderSteps(c.steps);
+        }
+
+        function renderSteps(steps) {
+            if (!steps || steps.length === 0) return '';
+            return `
+                <div class="lesson-card">
+                    ${steps.map(s => `
+                        <div class="lesson-step">
+                            <div class="step-num">${s.num}</div>
+                            <div class="step-content">
+                                ${s.text}
+                                ${s.link ? `<br><a href="${s.link}" target="_blank" class="resource-link">Tài liệu →</a>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // Feature Actions
+        let mediaRecorder;
+        let audioChunks = [];
+        let audioUrl = null;
+
+        window.toggleRecording = async (type) => {
+            let btn, statusLabel, playbackBtn;
+
+            if (type === 'flashcard') {
+                btn = document.getElementById('fc-record-btn');
+                statusLabel = document.getElementById('fc-status');
+                playbackBtn = document.getElementById('fc-playback-btn');
+            } else if (type === 'pronunciation') {
+                btn = document.getElementById('pron-rec');
+                statusLabel = document.getElementById('listen-status');
+                playbackBtn = document.getElementById('pron-playback');
+            } else {
+                // Default fallback for legacy sections
+                btn = document.getElementById('listen-rec') || document.querySelector('.record-btn');
+                statusLabel = document.getElementById('listen-status');
+                playbackBtn = document.getElementById('listen-playback');
+            }
+
+            if (!btn) {
+                console.warn("Recording button not found for type:", type);
+                return;
+            }
+
+            // Visual flash feedback
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = '', 100);
+
+            if (!btn.classList.contains('recording')) {
+                // START RECORDING
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+
+                    mediaRecorder.ondataavailable = (event) => {
+                        audioChunks.push(event.data);
+                    };
+
+                    mediaRecorder.onstop = () => {
+                        const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                        audioUrl = URL.createObjectURL(audioBlob);
+                        if (playbackBtn) {
+                            playbackBtn.classList.remove('hidden');
+                        }
+                        if (statusLabel) statusLabel.innerText = "Đã lưu bản ghi âm! Nhấn Play để nghe lại.";
+                    };
+
+                    mediaRecorder.start();
+                    btn.classList.add('recording');
+                    btn.innerHTML = "■ Dừng";
+                    if (statusLabel) statusLabel.innerText = "Đang ghi âm...";
+                    if (playbackBtn) playbackBtn.classList.add('hidden');
+                } catch (err) {
+                    console.error("Recording error:", err);
+                    alert("Không thể truy cập Microphone. Hãy chắc chắn bạn đã cấp quyền ghi âm cho trang web này.");
+                }
+            } else {
+                // STOP RECORDING
+                if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                    mediaRecorder.stop();
+                }
+                btn.classList.remove('recording');
+
+                // Set text based on type
+                if (type === 'pronunciation') {
+                    btn.innerHTML = "<span>●</span> Bắt đầu Shadowing";
+                } else if (type === 'flashcard' || type === 'listening') {
+                    btn.innerHTML = "●";
+                } else {
+                    btn.innerHTML = '🎤 Bắt đầu ghi âm';
+                }
+
+                if (type === 'listening') {
+                    const acc = document.getElementById('listen-acc');
+                    if (acc) acc.classList.remove('hidden');
+                }
+            }
+        };
+
+        window.playRecording = () => {
+            if (audioUrl) {
+                const audio = new Audio(audioUrl);
+                audio.play();
+            }
+        };
+
+        window.speakPhrase = (text, isSlow = false) => {
+            if ('speechSynthesis' in window) {
+                // Cancel any ongoing speech
+                window.speechSynthesis.cancel();
+
+                let processedText = text;
+                if (isSlow) {
+                    // Add pauses between words for "robot" effect
+                    processedText = text.split(' ').join(', ');
+                }
+
+                const utterance = new SpeechSynthesisUtterance(processedText);
+                utterance.lang = 'en-US';
+                utterance.rate = isSlow ? 0.5 : 0.8; // Very slow for robot, natural-ish for native
+                utterance.pitch = isSlow ? 0.8 : 1.0;
+                window.speechSynthesis.speak(utterance);
+            }
+        };
+
+        window.insertWord = (w) => {
+            const editor = document.getElementById(window.lastActiveEditorId) || document.getElementById('vocab-editor');
+            if (editor) {
+                editor.focus();
+                document.execCommand('insertText', false, w + ' ');
+            }
+        };
+
+        window.checkSentenceGrammar = async (dayId, idx) => {
+            const edSimple = document.getElementById('vocab-editor-simple');
+            const edAcademic = document.getElementById('vocab-editor');
+            const box = document.getElementById('grammar-box');
+            const title = document.getElementById('grammar-title');
+            const reason = document.getElementById('grammar-reason');
+
+            const simpleText = edSimple ? edSimple.innerText.trim() : "";
+            const academicText = edAcademic ? edAcademic.innerText.trim() : "";
+
+            if (!simpleText && !academicText) {
+                alert("Vui lòng nhập ít nhất một câu để kiểm tra!");
+                return;
+            }
+
+            // Show checking status
+            box.style.display = 'block';
+            box.classList.remove('error');
+            box.style.background = 'rgba(99, 102, 241, 0.1)';
+            title.innerHTML = "📡 Đang kết nối AI (LanguageTool)...";
+            reason.innerHTML = "Đang phân tích cấu trúc 2 lớp (Daily & Academic)...";
+
+            const checkText = async (text, label) => {
+                if (!text) return { matches: [], custom: [] };
+                const response = await fetch('https://api.languagetool.org/v2/check', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ 'text': text, 'language': 'en-US' })
+                });
+                const data = await response.json();
+
+                let custom = [];
+                const words = text.split(/\s+/).filter(w => w.length > 0);
+                if (words.length < 4) {
+                    custom.push({ message: "Câu quá ngắn.", category: "Brevity", errorText: text });
+                }
+                if (!/[.!?"]\s*$/.test(text)) {
+                    custom.push({ message: "Thiếu dấu kết thúc.", category: "Punctuation", errorText: "Cuối câu" });
+                }
+
+                return { matches: data.matches, custom, label };
+            };
+
+            try {
+                const results = [];
+                if (simpleText) results.push(await checkText(simpleText, "🌱 Câu đơn giản"));
+                if (academicText) results.push(await checkText(academicText, "🎓 Câu học thuật"));
+
+                const allErrors = results.filter(r => r.matches.length > 0 || r.custom.length > 0);
+
+                if (allErrors.length > 0) {
+                    box.classList.add('error');
+                    title.innerHTML = `❌ Phát hiện lỗi cần xử lý:`;
+                    let html = '';
+                    allErrors.forEach(res => {
+                        html += `<div style="margin-bottom:15px; border-bottom:1px solid rgba(239, 68, 68, 0.2); padding-bottom:10px">
+                                    <strong style="color:var(--text-main)">${res.label}:</strong><ul style="padding-left:1.2rem; margin-top:5px; font-size:0.85rem">`;
+                        res.custom.forEach(ce => html += `<li><span style="color:#ef4444">${ce.message}</span></li>`);
+                        res.matches.forEach(m => html += `<li><span style="color:#ef4444">${m.message}</span></li>`);
+                        html += `</ul></div>`;
+                    });
+                    reason.innerHTML = html;
+                    if (edSimple && simpleText) edSimple.style.border = results.find(r => r.label === "🌱 Câu đơn giản").matches.length > 0 ? "1px solid #ef4444" : "1px solid #10b981";
+                    if (edAcademic && academicText) edAcademic.style.border = results.find(r => r.label === "🎓 Câu học thuật").matches.length > 0 ? "1px solid #ef4444" : "1px solid #10b981";
+                } else {
+                    box.classList.remove('error');
+                    box.style.background = 'rgba(16, 185, 129, 0.1)';
+                    title.innerHTML = "✅ Hoàn thành Reset Nền Tảng!";
+                    reason.innerHTML = `
+                        <p style="color:#10b981; font-weight:bold">Cả 2 câu đều chuẩn chỉnh!</p>
+                        <p style="font-size:0.8rem; margin-bottom:1rem">Dữ liệu đã sẵn sàng để lưu vào Bank cá nhân.</p>
+                        <button class="btn btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" onclick="addToSentenceBank('${dayId}', ${idx})">💾 Lưu bộ đôi context này</button>
+                    `;
+                    if (edSimple) edSimple.style.border = "1px solid #10b981";
+                    if (edAcademic) edAcademic.style.border = "1px solid #10b981";
+                }
+            } catch (err) {
+                console.error(err);
+                title.innerHTML = "⚠️ Lỗi kết nối AI";
+            }
+        };
+
+        window.addToSentenceBank = (dayId, idx) => {
+            const edSimple = document.getElementById('vocab-editor-simple');
+            const edAcademic = document.getElementById('vocab-editor');
+            const simpleText = edSimple ? edSimple.innerText.trim() : "";
+            const academicText = edAcademic ? edAcademic.innerText.trim() : "";
+
+            if (!academicText) return;
+
+            const combinedText = simpleText ? `[🌱 ${simpleText}] [🎓 ${academicText}]` : academicText;
+
+            if (!userData[dayId].details[idx].savedSentences) {
+                userData[dayId].details[idx].savedSentences = [];
+            }
+
+            if (userData[dayId].details[idx].savedSentences.includes(combinedText)) {
+                alert("Bộ context này đã tồn tại trong Bank!");
+                return;
+            }
+
+            userData[dayId].details[idx].savedSentences.push(combinedText);
+            save();
+
+            // Update UI
+            const bank = document.getElementById('sentence-bank');
+            const sentences = userData[dayId].details[idx].savedSentences;
+            bank.innerHTML = sentences.map((s, i) => `
+                <div style="margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border-radius:4px; border-left:3px solid #10b981; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size:0.85rem">${s}</span>
+                    <button onclick="removeFromSentenceBank('${dayId}', ${idx}, ${i})" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px 8px; font-size:1rem; line-height:1">×</button>
+                </div>
+            `).join('');
+
+            // Success Feedback
+            const reason = document.getElementById('grammar-reason');
+            reason.innerHTML = `<p style="color:#10b981; font-weight:bold">✅ Đã lưu bộ Context thành công!</p>`;
+
+            // Clear editors
+            setTimeout(() => {
+                if (edSimple) edSimple.innerHTML = '';
+                if (edAcademic) edAcademic.innerHTML = '';
+                document.getElementById('grammar-box').style.display = 'none';
+                if (edSimple) edSimple.style.border = "1px solid var(--glass-border)";
+                if (edAcademic) edAcademic.style.border = "1px solid var(--glass-border)";
+            }, 1000);
+        };
+
+        window.removeFromSentenceBank = (dayId, idx, sIdx) => {
+            if (!confirm("Bạn có chắc muốn xóa câu này khỏi Sentence Bank?")) return;
+
+            userData[dayId].details[idx].savedSentences.splice(sIdx, 1);
+            save();
+
+            // Refresh UI
+            const bank = document.getElementById('sentence-bank');
+            const sentences = userData[dayId].details[idx].savedSentences;
+            if (sentences && sentences.length > 0) {
+                bank.innerHTML = sentences.map((s, i) => `
+                    <div style="margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.02); border-radius:4px; border-left:3px solid #10b981; display:flex; justify-content:space-between; align-items:center;">
+                        <span>✨ ${s}</span>
+                        <button onclick="removeFromSentenceBank('${dayId}', ${idx}, ${i})" style="background:none; border:none; color:#ef4444; cursor:pointer; padding:4px 8px; font-size:1rem; line-height:1">×</button>
+                    </div>
+                `).join('');
+            } else {
+                bank.innerHTML = '<span style="color:var(--text-muted)">Chưa có câu nào được lưu. Hãy kiểm tra & lưu câu ở mục 3!</span>';
+            }
+        };
+
+        window.formatDoc = (cmd, val) => {
+            document.execCommand(cmd, false, val);
+        };
+
+        window.startTask = (dayId, idx) => {
+            if (!userData[dayId]) userData[dayId] = { tasks: [], notes: [], details: {} };
+            if (!userData[dayId].details) userData[dayId].details = {};
+            if (!userData[dayId].details[idx]) userData[dayId].details[idx] = { sessions: 0 };
+
+            userData[dayId].tasks[idx] = false;
+            userData[dayId].details[idx].startTime = Date.now();
+
+            save();
+            renderTree();
+            closeModal();
+
+            const [p, stageId, w, weekId, d, dayNum] = dayId.split(/[-wdr]/).filter(Boolean).map(Number);
+            const currentStage = stages.find(s => s.id === stageId);
+            const blockId = `p${stageId}-w${weekId}`;
+            const currentWeekInfo = weekDetails[blockId];
+            const taskName = (currentWeekInfo && currentWeekInfo.days && currentWeekInfo.days[dayNum]) ? currentWeekInfo.days[dayNum][idx] : currentStage.tasks[idx];
+            openTaskForm(dayId, idx, taskName);
+        };
+
+        window.finishTask = (dayId, idx) => {
+            const noteVal = document.getElementById('modal-note').value.trim();
+            const vocabEditor = document.getElementById('vocab-editor');
+            const editorContent = vocabEditor ? vocabEditor.innerHTML : null;
+
+            const detail = userData[dayId].details[idx];
+            detail.note = noteVal;
+            if (editorContent !== null) detail.editorContent = editorContent;
+
+            detail.sessions = (detail.sessions || 0) + 1;
+
+            const [p, stageId, w, weekId, d, dayNum] = dayId.split(/[-wdr]/).filter(Boolean).map(Number);
+            const currentStage = stages.find(s => s.id === stageId);
+            const blockId = `p${stageId}-w${weekId}`;
+            const currentWeekInfo = weekDetails[blockId];
+            const displayTasks = (currentWeekInfo && currentWeekInfo.days && currentWeekInfo.days[dayNum]) ? currentWeekInfo.days[dayNum] : currentStage.tasks;
+
+            if (!userData[dayId].tasks || userData[dayId].tasks.length === 0) {
+                userData[dayId].tasks = new Array(displayTasks.length).fill(false);
+            }
+            userData[dayId].tasks[idx] = true;
+
+            if (!userData[dayId].notes) userData[dayId].notes = new Array(displayTasks.length).fill('');
+            userData[dayId].notes[idx] = noteVal;
+
+            save();
+            renderTree();
+            closeModal();
+        };
+
+        window.closeModal = () => {
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) modal.remove();
+            // Reset session state when closing to prevent blank screen "click in/out" issue
+            currentSession = null;
+        };
+
+        function renderPills(blockId) {
+            let pills = '';
+            const daysInWeek = (weekDetails[blockId] && weekDetails[blockId][7]) ? 7 : 6;
+            for (let d = 1; d <= daysInWeek; d++) {
+                const dayId = `${blockId}-d${d}`;
+                const completed = isDayDone(dayId);
+                pills += `<div class="pill ${completed ? 'active' : ''}"></div>`;
+            }
+            return pills;
+        }
+
+        function isDayDone(dayId) {
+            if (!userData[dayId] || !userData[dayId].tasks) return false;
+            return userData[dayId].tasks.every(t => t === true);
+        }
+
+        function getTaskStatus(dayId, idx) {
+            return (userData[dayId]?.tasks?.[idx]) ? 'done' : '';
+        }
+
+        function toggleTask(dayId, idx, taskLength) {
+            if (!userData[dayId]) userData[dayId] = { tasks: new Array(taskLength).fill(false), notes: new Array(taskLength).fill('') };
+            if (!userData[dayId].tasks) userData[dayId].tasks = new Array(taskLength).fill(false);
+
+            userData[dayId].tasks[idx] = !userData[dayId].tasks[idx];
+            save();
+            renderTree();
+        }
+
+        function saveTaskNote(dayId, idx, value, taskLength) {
+            if (!userData[dayId]) userData[dayId] = { tasks: new Array(taskLength).fill(false), notes: new Array(taskLength).fill('') };
+            if (!userData[dayId].notes) userData[dayId].notes = new Array(taskLength).fill('');
+
+            userData[dayId].notes[idx] = value;
+            save();
+        }
+
+        function updateOverallProgress() {
+            let totalTasks = 0;
+            let completedTasks = 0;
+            let totalSessionsGlobal = 0;
+
+            // 3 Blocks * 12 Weeks * 6 Days * 4 Tasks
+            totalTasks = 3 * 12 * 6 * 4;
+
+            Object.keys(userData).forEach(dayId => {
+                const dayData = userData[dayId];
+                if (dayData.tasks) {
+                    dayData.tasks.forEach(t => { if (t) completedTasks++; });
+                }
+                if (dayData.details) {
+                    Object.keys(dayData.details).forEach(idx => {
+                        totalSessionsGlobal += (dayData.details[idx].sessions || 0);
+                    });
+                }
+            });
+
+            const percent = Math.round((completedTasks / totalTasks) * 100);
+            document.getElementById('overall-val').innerText = percent + '%';
+            document.getElementById('total-sessions-global').innerText = totalSessionsGlobal;
+
+            // Update current phase (mapped to 3 Blocks)
+            if (percent < 33) document.getElementById('current-phase-name').innerText = "Block 1: Foundation (0-5.0)";
+            else if (percent < 66) document.getElementById('current-phase-name').innerText = "Block 2: Academy (5.0-6.5)";
+            else document.getElementById('current-phase-name').innerText = "Block 3: Precision (6.5-7.0+)";
+        }
+
+        // Keyboard Shortcuts for Flashcards
+        document.addEventListener('keydown', (e) => {
+            if (!currentSession) return;
+
+            const isTyping = e.target.tagName === 'TEXTAREA' ||
+                e.target.tagName === 'INPUT' ||
+                e.target.contentEditable === 'true';
+            if (isTyping) return;
+
+            const key = e.key.toLowerCase();
+            const code = e.code;
+
+            // Navigation
+            if (code === 'ArrowRight' || key === 'n') {
+                nextFlashcard();
+            } else if (code === 'ArrowLeft' || key === 'b') {
+                prevFlashcard();
+            }
+            // Interaction
+            else if (code === 'Space' || code === 'Enter') {
+                e.preventDefault();
+                flipFlashcard();
+            }
+            // Recording Features
+            else if (code === 'KeyR' || key === 'r') {
+                e.preventDefault();
+                window.toggleRecording('flashcard');
+            } else if (code === 'KeyP' || key === 'p') {
+                e.preventDefault();
+                window.playRecording();
+            } else if (code === 'KeyS' || key === 's') {
+                e.preventDefault();
+                const item = currentSession.items[currentSession.currentIndex];
+                if (item) window.speakPhrase(item.text || item.w);
+            }
+        });
+
+        window.onload = () => {
+            renderTree();
+            updateOverallProgress();
+        };
+    </script>
+</body>
+
+</html>

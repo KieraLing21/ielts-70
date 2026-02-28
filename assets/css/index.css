@@ -745,6 +745,35 @@ h1 {
     line-height: 1.4;
 }
 
+.mini-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.mini-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.1);
+}
+
+.cambridge-badge {
+    transition: transform 0.2s;
+}
+
+.cambridge-badge:hover {
+    transform: scale(1.05);
+}
+
 /* Flashcard Session Styles */
 .session-container {
     padding: 1rem;
@@ -773,10 +802,11 @@ h1 {
 
 .flashcard-wrapper {
     width: 100%;
-    max-width: 400px;
-    height: 250px;
+    max-width: 500px;
+    height: 480px;
     perspective: 1000px;
     cursor: pointer;
+    margin: 0 auto;
 }
 
 .flashcard {
@@ -800,11 +830,12 @@ h1 {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 1.5rem;
-    padding: 2rem;
+    border-radius: 2rem;
+    padding: 2.5rem;
     text-align: center;
     border: 1px solid var(--glass-border);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 15px 45px rgba(0, 0, 0, 0.08);
+    background: white;
 }
 
 .flashcard-front {
@@ -842,20 +873,23 @@ h1 {
     padding: 1rem;
     border-radius: 1rem;
     border: 1px solid var(--glass-border);
-    background: rgba(255, 255, 255, 0.03);
-    color: white;
+    background: white;
+    color: var(--primary);
     font-weight: 700;
+    cursor: pointer;
     transition: all 0.2s;
 }
 
 .session-btn:hover {
-    background: var(--primary);
+    background: #FFF8E1;
     border-color: var(--primary);
     transform: translateY(-2px);
 }
 
 .session-btn.next {
     background: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
 .comp-tag {
@@ -1005,17 +1039,17 @@ h1 {
 
 /* Shadowing Studio & Steps Flow Styles */
 .shadowing-podium {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(197, 160, 0, 0.03);
     border: 1px solid var(--glass-border);
     border-radius: 16px;
-    padding: 20px;
+    padding: 24px;
     text-align: center;
 }
 
 .shadowing-podium h4 {
     margin-bottom: 15px;
-    color: white;
-    font-size: 1rem;
+    color: var(--text-main);
+    font-size: 1.1rem;
 }
 
 .studio-controls {
@@ -1061,6 +1095,12 @@ h1 {
 .studio-btn.play {
     background: var(--primary);
     color: white;
+    border: 1px solid var(--primary);
+}
+
+.studio-btn.play:hover {
+    background: #d97706;
+    box-shadow: 0 4px 12px rgba(197, 160, 0, 0.3);
 }
 
 .studio-status {
